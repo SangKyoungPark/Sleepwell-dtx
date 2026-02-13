@@ -37,10 +37,23 @@ export async function POST(req: Request) {
     contextPrompt += `\n\n## 사용자의 최근 수면 데이터\n${sleepContext}`;
   }
 
+  // UIMessage (parts 형식) → ModelMessage (content 형식) 변환
+  const convertedMessages = messages.map(
+    (msg: { role: string; parts?: { type: string; text: string }[]; content?: string }) => ({
+      role: msg.role,
+      content: msg.parts
+        ? msg.parts
+            .filter((p) => p.type === "text")
+            .map((p) => p.text)
+            .join("")
+        : msg.content || "",
+    }),
+  );
+
   const result = streamText({
     model: anthropic("claude-sonnet-4-5-20250929"),
     system: contextPrompt,
-    messages,
+    messages: convertedMessages,
   });
 
   return result.toUIMessageStreamResponse();
