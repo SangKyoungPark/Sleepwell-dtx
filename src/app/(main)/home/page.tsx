@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatMinutesToHM } from "@/lib/utils";
 import { PROGRAM_WEEKS } from "@/lib/constants";
+import { getMission } from "@/lib/missions";
 
 interface DiaryEntry {
   date: string;
@@ -24,15 +25,27 @@ const MOOD_EMOJI: Record<string, string> = {
 export default function HomePage() {
   const [lastEntry, setLastEntry] = useState<DiaryEntry | null>(null);
   const [currentWeek] = useState(1);
+  const [currentDay, setCurrentDay] = useState(1);
+  const [missionDone, setMissionDone] = useState(false);
 
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
     if (data.length > 0) {
       setLastEntry(data[data.length - 1]);
     }
-  }, []);
+    // 오늘의 미션 일차 계산 (기록 수 기반)
+    const dayNum = Math.min((data.length % 7) + 1, 7);
+    setCurrentDay(dayNum);
+    // 미션 완료 여부
+    const missionLog = JSON.parse(localStorage.getItem("missionLog") || "{}");
+    const todayMission = getMission(currentWeek, dayNum);
+    if (todayMission) {
+      setMissionDone(!!missionLog[todayMission.id]);
+    }
+  }, [currentWeek]);
 
   const weekInfo = PROGRAM_WEEKS[currentWeek - 1];
+  const todayMission = getMission(currentWeek, currentDay);
 
   return (
     <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20">
@@ -108,11 +121,13 @@ export default function HomePage() {
           className="block bg-[var(--color-surface)] rounded-2xl p-5 hover:bg-[var(--color-surface-light)] transition-colors"
         >
           <div className="flex items-center gap-4">
-            <span className="text-3xl">🎯</span>
+            <span className="text-3xl">{missionDone ? "✅" : "🎯"}</span>
             <div className="flex-1">
-              <p className="font-medium">오늘 카페인 마지막 섭취 시각 기록하기</p>
+              <p className={`font-medium ${missionDone ? "line-through opacity-60" : ""}`}>
+                {todayMission?.title || "미션 준비 중"}
+              </p>
               <p className="text-sm text-[var(--color-muted)] mt-1">
-                1주차 · 관찰 & 인식
+                {currentWeek}주차 Day {currentDay} · {weekInfo.theme}
               </p>
             </div>
             <span className="text-[var(--color-muted)]">→</span>
