@@ -260,7 +260,9 @@ export default function SettingsPage() {
         <button
           onClick={async () => {
             const supabase = createClient();
-            await supabase.auth.signOut();
+            if (supabase) {
+              await supabase.auth.signOut();
+            }
             router.push("/login");
             router.refresh();
           }}

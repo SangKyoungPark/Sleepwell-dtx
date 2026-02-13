@@ -11,17 +11,20 @@ export default function Home() {
   useEffect(() => {
     async function checkAuth() {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
 
-      if (user) {
-        // 로그인된 사용자 → 홈으로
-        router.replace("/home");
-      } else {
-        // 비로그인 → 온보딩 완료 여부 확인
-        const done = localStorage.getItem("onboardingDone");
-        if (done === "true") {
-          router.replace("/login");
+      if (supabase) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          router.replace("/home");
+          return;
         }
+      }
+
+      // 비로그인 또는 Supabase 미설정 → 온보딩 완료 여부 확인
+      const done = localStorage.getItem("onboardingDone");
+      if (done === "true") {
+        // Supabase 미설정 시 로그인 안 거치고 바로 홈
+        router.replace(supabase ? "/login" : "/home");
       }
     }
     checkAuth();

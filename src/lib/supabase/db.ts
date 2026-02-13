@@ -1,6 +1,10 @@
 import { createClient } from "./client";
 
-const supabase = () => createClient();
+const supabase = () => {
+  const client = createClient();
+  if (!client) throw new Error("Supabase not configured");
+  return client;
+};
 
 // ── 필드 변환 (camelCase ↔ snake_case) ──
 

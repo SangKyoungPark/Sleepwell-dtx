@@ -20,6 +20,11 @@ export default function SignupPage() {
     setLoading(true);
 
     const supabase = createClient();
+    if (!supabase) {
+      setError("Supabase가 설정되지 않았습니다. .env.local 파일을 확인하세요.");
+      setLoading(false);
+      return;
+    }
 
     // 회원가입
     const { data, error: signUpError } = await supabase.auth.signUp({
@@ -162,6 +167,7 @@ export default function SignupPage() {
           <button
             onClick={async () => {
               const supabase = createClient();
+              if (!supabase) return;
               await supabase.auth.signInWithOAuth({
                 provider: "google",
                 options: {

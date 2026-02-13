@@ -11,6 +11,12 @@ export function useAuth() {
   useEffect(() => {
     const supabase = createClient();
 
+    // Supabase 미설정 → 항상 비로그인 상태
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
       setLoading(false);
