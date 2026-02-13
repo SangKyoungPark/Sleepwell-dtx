@@ -5,6 +5,11 @@ export const metadata: Metadata = {
   title: "SleepWell - 불면증 CBT-I 자가관리",
   description: "인지행동치료 기반 불면증 디지털 치료 웹앱",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "SleepWell",
+  },
 };
 
 export const viewport: Viewport = {
