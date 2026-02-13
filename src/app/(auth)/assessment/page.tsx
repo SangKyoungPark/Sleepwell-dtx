@@ -22,6 +22,13 @@ export default function AssessmentPage() {
     const newScores = [...scores];
     newScores[currentQuestion] = value;
     setScores(newScores);
+
+    // 선택 시 자동으로 다음 문항으로 이동 (마지막 문항 제외)
+    if (currentQuestion < ISI_QUESTIONS.length - 1) {
+      setTimeout(() => {
+        setCurrentQuestion((prev) => prev + 1);
+      }, 300);
+    }
   }
 
   function handleNext() {
@@ -82,18 +89,20 @@ export default function AssessmentPage() {
       {/* Navigation */}
       <div className="flex gap-3 mt-8 pt-4 border-t border-[var(--color-surface-light)]">
         {currentQuestion > 0 && (
-          <Button variant="secondary" size="md" onClick={handlePrev}>
+          <Button variant="secondary" size="md" className="min-w-[80px]" onClick={handlePrev}>
             이전
           </Button>
         )}
-        <Button
-          variant="primary"
-          size="lg"
-          onClick={handleNext}
-          disabled={currentScore === null}
-        >
-          {isLastQuestion ? "결과 보기" : "다음"}
-        </Button>
+        {isLastQuestion && (
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={handleNext}
+            disabled={currentScore === null}
+          >
+            결과 보기
+          </Button>
+        )}
       </div>
     </main>
   );
