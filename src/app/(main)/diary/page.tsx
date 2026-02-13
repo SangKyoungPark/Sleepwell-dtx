@@ -94,7 +94,7 @@ export default function DiaryPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-24">
+    <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-36">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl font-bold mb-1">아침 수면 기록</h1>
@@ -194,7 +194,7 @@ export default function DiaryPage() {
       </div>
 
       {/* 저장 버튼 */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--color-background)] border-t border-[var(--color-surface-light)]">
+      <div className="fixed bottom-14 left-0 right-0 p-4 bg-[var(--color-background)] border-t border-[var(--color-surface-light)]">
         <div className="max-w-md mx-auto">
           <Button
             variant="primary"
