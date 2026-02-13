@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { getWeekMissions } from "@/lib/missions";
 import { PROGRAM_WEEKS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { getMissionLogs, toggleMission as toggleMissionDb } from "@/lib/supabase/db";
 import type { Mission } from "@/types";
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -27,22 +29,40 @@ const DIFFICULTY_DOT: Record<string, string> = {
 };
 
 export default function MissionPage() {
+  const { user } = useAuth();
   const [currentWeek, setCurrentWeek] = useState(1);
   const [completedMissions, setCompletedMissions] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("missionLog") || "{}");
-    setCompletedMissions(saved);
-  }, []);
+    async function loadMissions() {
+      if (user) {
+        const { data } = await getMissionLogs(user.id);
+        if (data) {
+          setCompletedMissions(data);
+          localStorage.setItem("missionLog", JSON.stringify(data));
+        }
+      } else {
+        const saved = JSON.parse(localStorage.getItem("missionLog") || "{}");
+        setCompletedMissions(saved);
+      }
+    }
+    loadMissions();
+  }, [user]);
 
   const weekMissions = getWeekMissions(currentWeek);
   const weekInfo = PROGRAM_WEEKS[currentWeek - 1];
   const completedCount = weekMissions.filter((m) => completedMissions[m.id]).length;
 
-  function toggleMission(mission: Mission) {
-    const updated = { ...completedMissions, [mission.id]: !completedMissions[mission.id] };
+  async function toggleMission(mission: Mission) {
+    const newCompleted = !completedMissions[mission.id];
+    const updated = { ...completedMissions, [mission.id]: newCompleted };
+    if (!newCompleted) delete updated[mission.id];
     setCompletedMissions(updated);
     localStorage.setItem("missionLog", JSON.stringify(updated));
+
+    if (user) {
+      await toggleMissionDb(user.id, mission.id, newCompleted);
+    }
   }
 
   return (

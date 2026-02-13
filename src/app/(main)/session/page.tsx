@@ -1,26 +1,52 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { SESSIONS, type SessionContent } from "@/lib/sessions";
 import { PROGRAM_WEEKS } from "@/lib/constants";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  saveSessionProgress as saveSessionProgressDb,
+  getSessionProgress,
+} from "@/lib/supabase/db";
 
 type View = "list" | "detail";
 
 export default function SessionPage() {
+  const { user } = useAuth();
   const [currentWeek, setCurrentWeek] = useState(1);
   const [view, setView] = useState<View>("list");
   const [completedSections, setCompletedSections] = useState<Record<string, boolean>>({});
   const [practiceChecks, setPracticeChecks] = useState<Record<string, boolean>>({});
   const [reflectionText, setReflectionText] = useState<Record<number, string>>({});
   const [expandedSection, setExpandedSection] = useState<number | null>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("sessionProgress") || "{}");
-    if (saved.completedSections) setCompletedSections(saved.completedSections);
-    if (saved.practiceChecks) setPracticeChecks(saved.practiceChecks);
-    if (saved.reflectionText) setReflectionText(saved.reflectionText);
-  }, []);
+    async function loadProgress() {
+      if (user) {
+        const { data } = await getSessionProgress(user.id);
+        if (data) {
+          if (data.completed_sections) setCompletedSections(data.completed_sections as Record<string, boolean>);
+          if (data.practice_checks) setPracticeChecks(data.practice_checks as Record<string, boolean>);
+          if (data.reflection_text) setReflectionText(data.reflection_text as Record<number, string>);
+          // localStorage 동기화
+          localStorage.setItem("sessionProgress", JSON.stringify({
+            completedSections: data.completed_sections || {},
+            practiceChecks: data.practice_checks || {},
+            reflectionText: data.reflection_text || {},
+          }));
+          return;
+        }
+      }
+      // localStorage 폴백
+      const saved = JSON.parse(localStorage.getItem("sessionProgress") || "{}");
+      if (saved.completedSections) setCompletedSections(saved.completedSections);
+      if (saved.practiceChecks) setPracticeChecks(saved.practiceChecks);
+      if (saved.reflectionText) setReflectionText(saved.reflectionText);
+    }
+    loadProgress();
+  }, [user]);
 
   function saveProgress(
     sections: Record<string, boolean>,
@@ -33,6 +59,14 @@ export default function SessionPage() {
       reflectionText: reflections,
     };
     localStorage.setItem("sessionProgress", JSON.stringify(data));
+
+    // Supabase에 디바운스 저장 (300ms)
+    if (user) {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => {
+        saveSessionProgressDb(user.id, data);
+      }, 300);
+    }
   }
 
   function togglePractice(id: string) {

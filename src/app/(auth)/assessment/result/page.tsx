@@ -1,11 +1,13 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import Link from "next/link";
 import { getInsomniaSeverity } from "@/lib/utils";
 import { ISI_SEVERITY_RANGES, ISI_QUESTIONS } from "@/lib/constants";
 import { Button } from "@/components/ui/Button";
+import { useAuth } from "@/hooks/useAuth";
+import { saveAssessment } from "@/lib/supabase/db";
 
 const SEVERITY_COLORS = {
   none: "text-[var(--color-success)]",
@@ -22,9 +24,20 @@ const SEVERITY_BG = {
 } as const;
 
 function AssessmentResult() {
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const scoresParam = searchParams.get("scores");
   const totalParam = searchParams.get("total");
+
+  // Supabase에 ISI 결과 저장
+  useEffect(() => {
+    if (user && scoresParam && totalParam) {
+      const scores = scoresParam.split(",").map(Number);
+      const totalScore = parseInt(totalParam, 10);
+      const severity = getInsomniaSeverity(totalScore);
+      saveAssessment(user.id, scores, totalScore, severity);
+    }
+  }, [user, scoresParam, totalParam]);
 
   if (!scoresParam || !totalParam) {
     return (

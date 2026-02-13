@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { getProfile, updateProfile, getDiaryEntries, getMissionLogs } from "@/lib/supabase/db";
 
 interface UserProfile {
   name: string;
@@ -14,6 +16,7 @@ interface UserProfile {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile>({
     name: "",
     startDate: "",
@@ -26,23 +29,52 @@ export default function SettingsPage() {
   const [missionCount, setMissionCount] = useState(0);
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("userProfile") || "{}");
-    if (data.name) {
-      setProfile(data);
-    } else {
-      setProfile((prev) => ({
-        ...prev,
-        startDate: new Date().toISOString().split("T")[0],
-      }));
+    async function loadSettings() {
+      if (user) {
+        // Supabase에서 프로필 로드
+        const { data: profileData } = await getProfile(user.id);
+        if (profileData) {
+          setProfile({
+            name: profileData.name || user.user_metadata?.name || "",
+            startDate: profileData.start_date || new Date().toISOString().split("T")[0],
+            currentWeek: profileData.current_week || 1,
+          });
+        }
+        // Supabase에서 통계 로드
+        const { data: diaryData } = await getDiaryEntries(user.id);
+        if (diaryData) setDiaryCount(diaryData.length);
+        const { data: missionData } = await getMissionLogs(user.id);
+        if (missionData) setMissionCount(Object.values(missionData).filter(Boolean).length);
+      } else {
+        // localStorage 폴백
+        const data = JSON.parse(localStorage.getItem("userProfile") || "{}");
+        if (data.name) {
+          setProfile(data);
+        } else {
+          setProfile((prev) => ({
+            ...prev,
+            startDate: new Date().toISOString().split("T")[0],
+          }));
+        }
+        setDiaryCount(JSON.parse(localStorage.getItem("sleepDiary") || "[]").length);
+        const checks = JSON.parse(localStorage.getItem("missionLog") || "{}");
+        setMissionCount(Object.values(checks).filter(Boolean).length);
+      }
     }
-    // 통계 로드
-    setDiaryCount(JSON.parse(localStorage.getItem("sleepDiary") || "[]").length);
-    const checks = JSON.parse(localStorage.getItem("missionChecks") || "{}");
-    setMissionCount(Object.values(checks).filter(Boolean).length);
-  }, []);
+    loadSettings();
+  }, [user]);
 
-  function saveProfile() {
+  async function saveProfileHandler() {
     localStorage.setItem("userProfile", JSON.stringify(profile));
+
+    if (user) {
+      await updateProfile(user.id, {
+        name: profile.name,
+        start_date: profile.startDate,
+        current_week: profile.currentWeek,
+      });
+    }
+
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -51,7 +83,7 @@ export default function SettingsPage() {
     const allData = {
       profile: JSON.parse(localStorage.getItem("userProfile") || "{}"),
       sleepDiary: JSON.parse(localStorage.getItem("sleepDiary") || "[]"),
-      missionLog: JSON.parse(localStorage.getItem("missionChecks") || "{}"),
+      missionLog: JSON.parse(localStorage.getItem("missionLog") || "{}"),
       sessionProgress: JSON.parse(localStorage.getItem("sessionProgress") || "{}"),
       exportDate: new Date().toISOString(),
     };
@@ -71,7 +103,7 @@ export default function SettingsPage() {
 
   function resetAllData() {
     localStorage.removeItem("sleepDiary");
-    localStorage.removeItem("missionChecks");
+    localStorage.removeItem("missionLog");
     localStorage.removeItem("sessionProgress");
     localStorage.removeItem("userProfile");
     setProfile({ name: "", startDate: new Date().toISOString().split("T")[0], currentWeek: 1 });
@@ -134,11 +166,34 @@ export default function SettingsPage() {
                 ))}
               </div>
             </div>
-            <Button variant="primary" size="md" onClick={saveProfile}>
+            <Button variant="primary" size="md" onClick={saveProfileHandler}>
               {saved ? "저장 완료!" : "프로필 저장"}
             </Button>
           </div>
         </div>
+
+        {/* 계정 정보 (로그인 시) */}
+        {user && (
+          <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+            <h3 className="text-sm font-semibold text-[var(--color-muted)] mb-3">
+              계정 정보
+            </h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-[var(--color-muted)]">이메일</span>
+                <span className="text-[var(--color-primary-light)]">{user.email}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[var(--color-muted)]">로그인 방식</span>
+                <span>{user.app_metadata?.provider === "google" ? "Google" : "이메일"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[var(--color-muted)]">데이터 저장</span>
+                <span className="text-[var(--color-success)]">클라우드 동기화</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 내 데이터 요약 */}
         <div className="bg-[var(--color-surface)] rounded-2xl p-4">

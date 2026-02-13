@@ -5,6 +5,8 @@ import Link from "next/link";
 import { formatMinutesToHM } from "@/lib/utils";
 import { PROGRAM_WEEKS } from "@/lib/constants";
 import { getMission } from "@/lib/missions";
+import { useAuth } from "@/hooks/useAuth";
+import { getDiaryEntries, dbToDiary } from "@/lib/supabase/db";
 
 interface DiaryEntry {
   date: string;
@@ -23,26 +25,39 @@ const MOOD_EMOJI: Record<string, string> = {
 };
 
 export default function HomePage() {
+  const { user } = useAuth();
   const [lastEntry, setLastEntry] = useState<DiaryEntry | null>(null);
   const [currentWeek] = useState(1);
   const [currentDay, setCurrentDay] = useState(1);
   const [missionDone, setMissionDone] = useState(false);
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
-    if (data.length > 0) {
-      setLastEntry(data[data.length - 1]);
+    async function loadData() {
+      let data: Record<string, unknown>[] = [];
+
+      if (user) {
+        const { data: dbData } = await getDiaryEntries(user.id);
+        if (dbData) {
+          data = dbData.map((row: Record<string, unknown>) => dbToDiary(row));
+          localStorage.setItem("sleepDiary", JSON.stringify(data));
+        }
+      } else {
+        data = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
+      }
+
+      if (data.length > 0) {
+        setLastEntry(data[data.length - 1] as unknown as DiaryEntry);
+      }
+      const dayNum = Math.min((data.length % 7) + 1, 7);
+      setCurrentDay(dayNum);
+      const missionLog = JSON.parse(localStorage.getItem("missionLog") || "{}");
+      const todayMission = getMission(currentWeek, dayNum);
+      if (todayMission) {
+        setMissionDone(!!missionLog[todayMission.id]);
+      }
     }
-    // 오늘의 미션 일차 계산 (기록 수 기반)
-    const dayNum = Math.min((data.length % 7) + 1, 7);
-    setCurrentDay(dayNum);
-    // 미션 완료 여부
-    const missionLog = JSON.parse(localStorage.getItem("missionLog") || "{}");
-    const todayMission = getMission(currentWeek, dayNum);
-    if (todayMission) {
-      setMissionDone(!!missionLog[todayMission.id]);
-    }
-  }, [currentWeek]);
+    loadData();
+  }, [currentWeek, user]);
 
   const weekInfo = PROGRAM_WEEKS[currentWeek - 1];
   const todayMission = getMission(currentWeek, currentDay);

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { cn, formatMinutesToHM } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { getDiaryEntries, dbToDiary } from "@/lib/supabase/db";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ScatterChart, Scatter, Cell,
@@ -39,6 +41,7 @@ const MOOD_EMOJI: Record<string, string> = {
 };
 
 export default function ReportPage() {
+  const { user } = useAuth();
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("weekly");
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
@@ -46,9 +49,21 @@ export default function ReportPage() {
   const [aiError, setAiError] = useState("");
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
-    setEntries(data);
-  }, []);
+    async function loadEntries() {
+      if (user) {
+        const { data } = await getDiaryEntries(user.id);
+        if (data) {
+          const entries = data.map((row: Record<string, unknown>) => dbToDiary(row));
+          localStorage.setItem("sleepDiary", JSON.stringify(entries));
+          setEntries(entries as unknown as DiaryEntry[]);
+          return;
+        }
+      }
+      const data = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
+      setEntries(data);
+    }
+    loadEntries();
+  }, [user]);
 
   async function fetchAIAnalysis() {
     if (aiAnalysis || aiLoading) return;

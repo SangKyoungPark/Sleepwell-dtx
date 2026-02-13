@@ -14,12 +14,15 @@ import {
   calculateSleepEfficiency,
   formatMinutesToHM,
 } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { saveDiaryEntry, getDiaryEntries, diaryToDb, dbToDiary } from "@/lib/supabase/db";
 import type { MorningMood } from "@/types";
 
 type DiaryTab = "morning" | "evening";
 
 export default function DiaryPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [tab, setTab] = useState<DiaryTab>("morning");
 
   // ── 아침 기록 상태 ──
@@ -59,25 +62,55 @@ export default function DiaryPage() {
     wakeTime,
   );
 
-  // 기존 오늘 저녁 기록 있으면 불러오기
+  // 기존 오늘 기록 불러오기 (Supabase 우선 → localStorage 폴백)
   useEffect(() => {
-    const existing: Record<string, unknown>[] = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
-    const todayEntry = existing.find((e) => e.date === today);
-    if (todayEntry && todayEntry.stressLevel != null) {
-      setStressLevel(todayEntry.stressLevel as number);
-      setCaffeine(todayEntry.caffeine as boolean);
-      if (todayEntry.caffeineLastTime) setCaffeineLastTime(todayEntry.caffeineLastTime as string);
-      setExercise(todayEntry.exercise as boolean);
-      if (todayEntry.exerciseType) setExerciseType(todayEntry.exerciseType as string);
-      setNap(todayEntry.nap as boolean);
-      if (todayEntry.napDuration) setNapDuration(todayEntry.napDuration as number);
-      if (todayEntry.worryNote) setWorryNote(todayEntry.worryNote as string);
-      setEveningSaved(true);
+    async function loadTodayEntry() {
+      let todayEntry: Record<string, unknown> | null = null;
+
+      if (user) {
+        // Supabase에서 로드
+        const { data } = await getDiaryEntries(user.id);
+        if (data) {
+          // DB 데이터를 localStorage에 동기화
+          const entries = data.map((row: Record<string, unknown>) => dbToDiary(row));
+          localStorage.setItem("sleepDiary", JSON.stringify(entries));
+          todayEntry = entries.find((e: Record<string, unknown>) => e.date === today) || null;
+        }
+      } else {
+        // localStorage 폴백
+        const existing: Record<string, unknown>[] = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
+        todayEntry = existing.find((e) => e.date === today) || null;
+      }
+
+      if (todayEntry && todayEntry.stressLevel != null) {
+        setStressLevel(todayEntry.stressLevel as number);
+        setCaffeine(todayEntry.caffeine as boolean);
+        if (todayEntry.caffeineLastTime) setCaffeineLastTime(todayEntry.caffeineLastTime as string);
+        setExercise(todayEntry.exercise as boolean);
+        if (todayEntry.exerciseType) setExerciseType(todayEntry.exerciseType as string);
+        setNap(todayEntry.nap as boolean);
+        if (todayEntry.napDuration) setNapDuration(todayEntry.napDuration as number);
+        if (todayEntry.worryNote) setWorryNote(todayEntry.worryNote as string);
+        setEveningSaved(true);
+      }
     }
-  }, [today]);
+    loadTodayEntry();
+  }, [today, user]);
+
+  // localStorage에 diary entry 병합 저장
+  function saveToLocalStorage(entry: Record<string, unknown>) {
+    const existing = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
+    const idx = existing.findIndex((e: { date: string }) => e.date === today);
+    if (idx >= 0) {
+      existing[idx] = { ...existing[idx], ...entry };
+    } else {
+      existing.push(entry);
+    }
+    localStorage.setItem("sleepDiary", JSON.stringify(existing));
+  }
 
   // ── 아침 저장 ──
-  function handleMorningSave() {
+  async function handleMorningSave() {
     const entry = {
       date: today,
       bedtime,
@@ -91,20 +124,19 @@ export default function DiaryPage() {
       sleepEfficiency,
     };
 
-    const existing = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
-    // 같은 날짜 항목이 있으면 병합, 없으면 추가
-    const idx = existing.findIndex((e: { date: string }) => e.date === today);
-    if (idx >= 0) {
-      existing[idx] = { ...existing[idx], ...entry };
-    } else {
-      existing.push(entry);
+    // localStorage 저장
+    saveToLocalStorage(entry);
+
+    // Supabase 저장 (로그인 시)
+    if (user) {
+      await saveDiaryEntry(user.id, today, diaryToDb(entry));
     }
-    localStorage.setItem("sleepDiary", JSON.stringify(existing));
+
     setMorningSaved(true);
   }
 
   // ── 저녁 저장 ──
-  function handleEveningSave() {
+  async function handleEveningSave() {
     const eveningData = {
       date: today,
       stressLevel,
@@ -117,14 +149,14 @@ export default function DiaryPage() {
       worryNote: worryNote.trim() || undefined,
     };
 
-    const existing = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
-    const idx = existing.findIndex((e: { date: string }) => e.date === today);
-    if (idx >= 0) {
-      existing[idx] = { ...existing[idx], ...eveningData };
-    } else {
-      existing.push(eveningData);
+    // localStorage 저장
+    saveToLocalStorage(eveningData);
+
+    // Supabase 저장 (로그인 시)
+    if (user) {
+      await saveDiaryEntry(user.id, today, diaryToDb(eveningData));
     }
-    localStorage.setItem("sleepDiary", JSON.stringify(existing));
+
     setEveningSaved(true);
   }
 
