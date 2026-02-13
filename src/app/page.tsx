@@ -3,16 +3,28 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // 온보딩 완료한 사용자는 홈으로 바로 이동
-    const done = localStorage.getItem("onboardingDone");
-    if (done === "true") {
-      router.replace("/home");
+    async function checkAuth() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        // 로그인된 사용자 → 홈으로
+        router.replace("/home");
+      } else {
+        // 비로그인 → 온보딩 완료 여부 확인
+        const done = localStorage.getItem("onboardingDone");
+        if (done === "true") {
+          router.replace("/login");
+        }
+      }
     }
+    checkAuth();
   }, [router]);
 
   return (
@@ -36,8 +48,11 @@ export default function Home() {
           시작하기
         </Link>
 
-        <p className="text-xs text-[var(--color-muted)] mt-4">
-          6주 프로그램 · 매일 5분 투자
+        <p className="text-sm text-[var(--color-muted)] mt-4">
+          이미 계정이 있으신가요?{" "}
+          <Link href="/login" className="text-[var(--color-primary-light)] font-medium">
+            로그인
+          </Link>
         </p>
       </div>
     </main>

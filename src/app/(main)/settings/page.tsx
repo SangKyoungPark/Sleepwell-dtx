@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { createClient } from "@/lib/supabase/client";
 
 interface UserProfile {
   name: string;
@@ -11,6 +13,7 @@ interface UserProfile {
 }
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<UserProfile>({
     name: "",
     startDate: "",
@@ -197,6 +200,19 @@ export default function SettingsPage() {
             )}
           </div>
         </div>
+
+        {/* 로그아웃 */}
+        <button
+          onClick={async () => {
+            const supabase = createClient();
+            await supabase.auth.signOut();
+            router.push("/login");
+            router.refresh();
+          }}
+          className="w-full py-3 rounded-2xl text-sm font-medium bg-[var(--color-surface)] text-[var(--color-muted)] cursor-pointer hover:text-white transition-colors"
+        >
+          로그아웃
+        </button>
 
         {/* 앱 정보 */}
         <div className="bg-[var(--color-surface)] rounded-2xl p-4">
