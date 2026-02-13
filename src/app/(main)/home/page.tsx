@@ -150,6 +150,14 @@ export default function HomePage() {
             <p className="text-xs text-[var(--color-muted)] mt-0.5">아침 기록하기</p>
           </Link>
           <Link
+            href="/coach"
+            className="bg-[var(--color-surface)] rounded-2xl p-4 hover:bg-[var(--color-surface-light)] transition-colors"
+          >
+            <span className="text-2xl">🤖</span>
+            <p className="text-sm font-medium mt-2">AI 코치</p>
+            <p className="text-xs text-[var(--color-muted)] mt-0.5">수면 상담</p>
+          </Link>
+          <Link
             href="/relax"
             className="bg-[var(--color-surface)] rounded-2xl p-4 hover:bg-[var(--color-surface-light)] transition-colors"
           >

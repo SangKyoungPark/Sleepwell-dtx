@@ -22,7 +22,17 @@ interface DiaryEntry {
   stressLevel?: number;
 }
 
-type Tab = "weekly" | "trend" | "correlation";
+type Tab = "weekly" | "trend" | "correlation" | "ai";
+
+interface AIAnalysis {
+  score: number;
+  grade: string;
+  summary: string;
+  highlights: string[];
+  concerns: string[];
+  tips: string[];
+  weeklyTrend: "improving" | "stable" | "declining";
+}
 
 const MOOD_EMOJI: Record<string, string> = {
   terrible: "😫", bad: "😕", neutral: "😐", good: "🙂", great: "😊",
@@ -31,11 +41,60 @@ const MOOD_EMOJI: Record<string, string> = {
 export default function ReportPage() {
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("weekly");
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
 
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
     setEntries(data);
   }, []);
+
+  async function fetchAIAnalysis() {
+    if (aiAnalysis || aiLoading) return;
+    setAiLoading(true);
+    setAiError("");
+
+    try {
+      const diary = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
+      if (!diary.length) {
+        setAiError("분석할 수면 데이터가 없습니다.");
+        setAiLoading(false);
+        return;
+      }
+
+      // 최근 7일 데이터 요약
+      const recent = diary.slice(-7);
+      const lines: string[] = [`총 ${diary.length}일 기록, 최근 ${recent.length}일 분석:`];
+      for (const entry of recent) {
+        const parts: string[] = [entry.date];
+        if (entry.totalSleepTime) parts.push(`수면${Math.floor(entry.totalSleepTime / 60)}h${entry.totalSleepTime % 60}m`);
+        if (entry.sleepEfficiency) parts.push(`효율${entry.sleepEfficiency}%`);
+        if (entry.sleepQuality) parts.push(`품질${entry.sleepQuality}/5`);
+        if (entry.sleepOnsetLatency) parts.push(`입면${entry.sleepOnsetLatency}분`);
+        if (entry.awakenings) parts.push(`깬횟수${entry.awakenings}`);
+        if (entry.stressLevel) parts.push(`스트레스${entry.stressLevel}/10`);
+        if (entry.caffeine) parts.push(`카페인O`);
+        if (entry.exercise) parts.push(`운동O`);
+        lines.push(parts.join(" | "));
+      }
+
+      const res = await fetch("/api/ai/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sleepData: lines.join("\n") }),
+      });
+
+      if (!res.ok) throw new Error("분석 요청 실패");
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setAiAnalysis(data);
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : "분석 중 오류가 발생했습니다.");
+    } finally {
+      setAiLoading(false);
+    }
+  }
 
   if (entries.length === 0) {
     return (
@@ -97,6 +156,7 @@ export default function ReportPage() {
           { id: "weekly" as Tab, label: "주간 요약" },
           { id: "trend" as Tab, label: "트렌드" },
           { id: "correlation" as Tab, label: "상관관계" },
+          { id: "ai" as Tab, label: "AI 분석" },
         ]).map((tab) => (
           <button
             key={tab.id}
@@ -314,6 +374,140 @@ export default function ReportPage() {
               <li>📊 데이터가 많을수록 더 정확한 분석이 가능합니다. 매일 기록해보세요!</li>
             </ul>
           </div>
+        </div>
+      )}
+
+      {/* AI 분석 */}
+      {activeTab === "ai" && (
+        <div className="space-y-4">
+          {!aiAnalysis && !aiLoading && !aiError && (
+            <div className="bg-[var(--color-surface)] rounded-2xl p-6 text-center">
+              <p className="text-4xl mb-3">🤖</p>
+              <p className="text-lg font-bold mb-2">AI 수면 분석</p>
+              <p className="text-sm text-[var(--color-muted)] mb-4">
+                최근 수면 데이터를 AI가 종합 분석하여<br />
+                맞춤형 인사이트를 제공합니다
+              </p>
+              <button
+                onClick={fetchAIAnalysis}
+                className="px-6 py-3 bg-[var(--color-primary)] text-white rounded-xl font-medium text-sm cursor-pointer hover:bg-[var(--color-primary-light)] transition-colors"
+              >
+                분석 시작하기
+              </button>
+            </div>
+          )}
+
+          {aiLoading && (
+            <div className="bg-[var(--color-surface)] rounded-2xl p-8 text-center">
+              <div className="flex justify-center gap-1.5 mb-4">
+                <span className="w-2 h-2 bg-[var(--color-primary-light)] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="w-2 h-2 bg-[var(--color-primary-light)] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="w-2 h-2 bg-[var(--color-primary-light)] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+              <p className="text-sm text-[var(--color-muted)]">AI가 수면 데이터를 분석하고 있어요...</p>
+            </div>
+          )}
+
+          {aiError && (
+            <div className="bg-red-500/10 rounded-2xl p-4 text-center">
+              <p className="text-sm text-red-400 mb-3">{aiError}</p>
+              <button
+                onClick={() => { setAiError(""); setAiAnalysis(null); }}
+                className="px-4 py-2 bg-[var(--color-surface)] text-sm rounded-xl cursor-pointer hover:bg-[var(--color-surface-light)] transition-colors"
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
+
+          {aiAnalysis && (
+            <>
+              {/* 수면 건강 점수 */}
+              <div className="bg-[var(--color-surface)] rounded-2xl p-6 text-center">
+                <p className="text-xs text-[var(--color-muted)] mb-2">수면 건강 점수</p>
+                <div className="relative inline-flex items-center justify-center w-28 h-28 mb-3">
+                  <svg className="w-28 h-28 -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="var(--color-surface-light)" strokeWidth="8" />
+                    <circle
+                      cx="50" cy="50" r="42" fill="none"
+                      stroke={aiAnalysis.score >= 80 ? "var(--color-success)" : aiAnalysis.score >= 60 ? "var(--color-warning)" : "#f87171"}
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      strokeDasharray={`${aiAnalysis.score * 2.64} 264`}
+                    />
+                  </svg>
+                  <div className="absolute flex flex-col items-center">
+                    <span className="text-3xl font-bold">{aiAnalysis.score}</span>
+                    <span className="text-xs text-[var(--color-muted)]">/ 100</span>
+                  </div>
+                </div>
+                <p className={`text-2xl font-bold mb-1 ${
+                  aiAnalysis.score >= 80 ? "text-[var(--color-success)]" :
+                  aiAnalysis.score >= 60 ? "text-[var(--color-warning)]" : "text-red-400"
+                }`}>
+                  {aiAnalysis.grade}
+                </p>
+                <p className="text-sm text-[var(--color-muted)]">{aiAnalysis.summary}</p>
+                <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--color-surface-light)] rounded-full text-xs">
+                  <span>{aiAnalysis.weeklyTrend === "improving" ? "📈" : aiAnalysis.weeklyTrend === "stable" ? "➡️" : "📉"}</span>
+                  <span className="text-[var(--color-muted)]">
+                    {aiAnalysis.weeklyTrend === "improving" ? "개선 중" : aiAnalysis.weeklyTrend === "stable" ? "유지 중" : "주의 필요"}
+                  </span>
+                </div>
+              </div>
+
+              {/* 잘하고 있는 점 */}
+              {aiAnalysis.highlights.length > 0 && (
+                <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+                  <h3 className="text-sm font-semibold text-[var(--color-success)] mb-3">잘하고 있는 점</h3>
+                  <ul className="space-y-2">
+                    {aiAnalysis.highlights.map((h, i) => (
+                      <li key={i} className="flex gap-2 text-sm text-[var(--color-foreground)]">
+                        <span className="text-[var(--color-success)] shrink-0">✓</span>
+                        {h}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* 주의할 점 */}
+              {aiAnalysis.concerns.length > 0 && (
+                <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+                  <h3 className="text-sm font-semibold text-[var(--color-warning)] mb-3">주의할 점</h3>
+                  <ul className="space-y-2">
+                    {aiAnalysis.concerns.map((c, i) => (
+                      <li key={i} className="flex gap-2 text-sm text-[var(--color-foreground)]">
+                        <span className="text-[var(--color-warning)] shrink-0">!</span>
+                        {c}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* 이번 주 실천 팁 */}
+              <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+                <h3 className="text-sm font-semibold text-[var(--color-primary-light)] mb-3">이번 주 실천 팁</h3>
+                <ul className="space-y-2">
+                  {aiAnalysis.tips.map((t, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-[var(--color-foreground)]">
+                      <span className="text-[var(--color-primary-light)] shrink-0">{i + 1}.</span>
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* 다시 분석 */}
+              <button
+                onClick={() => { setAiAnalysis(null); }}
+                className="w-full py-3 text-sm text-[var(--color-muted)] cursor-pointer hover:text-[var(--color-foreground)] transition-colors"
+              >
+                다시 분석하기
+              </button>
+            </>
+          )}
         </div>
       )}
     </main>
