@@ -6,6 +6,9 @@ import { PROGRAM_WEEKS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { getMissionLogs, toggleMission as toggleMissionDb } from "@/lib/supabase/db";
+import { useToast } from "@/hooks/useToast";
+import { ToastContainer } from "@/components/ui/Toast";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import type { Mission } from "@/types";
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -30,8 +33,10 @@ const DIFFICULTY_DOT: Record<string, string> = {
 
 export default function MissionPage() {
   const { user } = useAuth();
+  const { toasts, close, success } = useToast();
   const [currentWeek, setCurrentWeek] = useState(1);
   const [completedMissions, setCompletedMissions] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadMissions() {
@@ -45,6 +50,7 @@ export default function MissionPage() {
         const saved = JSON.parse(localStorage.getItem("missionLog") || "{}");
         setCompletedMissions(saved);
       }
+      setLoading(false);
     }
     loadMissions();
   }, [user]);
@@ -63,10 +69,14 @@ export default function MissionPage() {
     if (user) {
       await toggleMissionDb(user.id, mission.id, newCompleted);
     }
+    if (newCompleted) success("미션 완료!");
   }
 
+  if (loading) return <PageSkeleton cards={5} />;
+
   return (
-    <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20">
+    <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20 animate-fade-in">
+      <ToastContainer toasts={toasts} onClose={close} />
       {/* Header */}
       <div className="mb-4">
         <h1 className="text-xl font-bold mb-1">오늘의 미션</h1>

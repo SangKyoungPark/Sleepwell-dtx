@@ -7,6 +7,7 @@ import { PROGRAM_WEEKS } from "@/lib/constants";
 import { getMission } from "@/lib/missions";
 import { useAuth } from "@/hooks/useAuth";
 import { getDiaryEntries, dbToDiary } from "@/lib/supabase/db";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 
 interface DiaryEntry {
   date: string;
@@ -30,6 +31,7 @@ export default function HomePage() {
   const [currentWeek] = useState(1);
   const [currentDay, setCurrentDay] = useState(1);
   const [missionDone, setMissionDone] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
@@ -55,6 +57,7 @@ export default function HomePage() {
       if (todayMission) {
         setMissionDone(!!missionLog[todayMission.id]);
       }
+      setLoading(false);
     }
     loadData();
   }, [currentWeek, user]);
@@ -62,8 +65,10 @@ export default function HomePage() {
   const weekInfo = PROGRAM_WEEKS[currentWeek - 1];
   const todayMission = getMission(currentWeek, currentDay);
 
+  if (loading) return <PageSkeleton cards={4} />;
+
   return (
-    <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20">
+    <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20 animate-fade-in">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold">
@@ -75,7 +80,7 @@ export default function HomePage() {
       </div>
 
       {/* 어젯밤 수면 요약 */}
-      <section className="mb-6">
+      <section className="mb-6 animate-slide-up">
         <h2 className="text-sm font-semibold text-[var(--color-muted)] mb-3">
           어젯밤 수면
         </h2>
@@ -127,13 +132,13 @@ export default function HomePage() {
       </section>
 
       {/* 오늘의 미션 */}
-      <section className="mb-6">
+      <section className="mb-6 animate-slide-up delay-75">
         <h2 className="text-sm font-semibold text-[var(--color-muted)] mb-3">
           오늘의 미션
         </h2>
         <Link
           href="/mission"
-          className="block bg-[var(--color-surface)] rounded-2xl p-5 hover:bg-[var(--color-surface-light)] transition-colors"
+          className="block bg-[var(--color-surface)] rounded-2xl p-5 hover:bg-[var(--color-surface-light)] transition-all active:scale-[0.98]"
         >
           <div className="flex items-center gap-4">
             <span className="text-3xl">{missionDone ? "✅" : "🎯"}</span>
@@ -151,14 +156,14 @@ export default function HomePage() {
       </section>
 
       {/* 퀵 액션 */}
-      <section className="mb-6">
+      <section className="mb-6 animate-slide-up delay-150">
         <h2 className="text-sm font-semibold text-[var(--color-muted)] mb-3">
           바로가기
         </h2>
         <div className="grid grid-cols-2 gap-3">
           <Link
             href="/diary"
-            className="bg-[var(--color-surface)] rounded-2xl p-4 hover:bg-[var(--color-surface-light)] transition-colors"
+            className="bg-[var(--color-surface)] rounded-2xl p-4 hover:bg-[var(--color-surface-light)] transition-all active:scale-[0.97]"
           >
             <span className="text-2xl">📝</span>
             <p className="text-sm font-medium mt-2">수면 기록</p>
@@ -166,7 +171,7 @@ export default function HomePage() {
           </Link>
           <Link
             href="/coach"
-            className="bg-[var(--color-surface)] rounded-2xl p-4 hover:bg-[var(--color-surface-light)] transition-colors"
+            className="bg-[var(--color-surface)] rounded-2xl p-4 hover:bg-[var(--color-surface-light)] transition-all active:scale-[0.97]"
           >
             <span className="text-2xl">🤖</span>
             <p className="text-sm font-medium mt-2">AI 코치</p>
@@ -174,7 +179,7 @@ export default function HomePage() {
           </Link>
           <Link
             href="/relax"
-            className="bg-[var(--color-surface)] rounded-2xl p-4 hover:bg-[var(--color-surface-light)] transition-colors"
+            className="bg-[var(--color-surface)] rounded-2xl p-4 hover:bg-[var(--color-surface-light)] transition-all active:scale-[0.97]"
           >
             <span className="text-2xl">🧘</span>
             <p className="text-sm font-medium mt-2">이완 도구</p>
@@ -182,7 +187,7 @@ export default function HomePage() {
           </Link>
           <Link
             href="/session"
-            className="bg-[var(--color-surface)] rounded-2xl p-4 hover:bg-[var(--color-surface-light)] transition-colors"
+            className="bg-[var(--color-surface)] rounded-2xl p-4 hover:bg-[var(--color-surface-light)] transition-all active:scale-[0.97]"
           >
             <span className="text-2xl">📖</span>
             <p className="text-sm font-medium mt-2">{weekInfo.week}주차 세션</p>
@@ -192,7 +197,7 @@ export default function HomePage() {
           </Link>
           <Link
             href="/report"
-            className="bg-[var(--color-surface)] rounded-2xl p-4 hover:bg-[var(--color-surface-light)] transition-colors"
+            className="bg-[var(--color-surface)] rounded-2xl p-4 hover:bg-[var(--color-surface-light)] transition-all active:scale-[0.97]"
           >
             <span className="text-2xl">📊</span>
             <p className="text-sm font-medium mt-2">나의 리포트</p>
@@ -202,7 +207,7 @@ export default function HomePage() {
       </section>
 
       {/* 프로그램 진행도 */}
-      <section>
+      <section className="animate-slide-up delay-200">
         <h2 className="text-sm font-semibold text-[var(--color-muted)] mb-3">
           프로그램 진행
         </h2>

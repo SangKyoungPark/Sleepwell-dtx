@@ -16,6 +16,8 @@ import {
 } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { saveDiaryEntry, getDiaryEntries, diaryToDb, dbToDiary } from "@/lib/supabase/db";
+import { useToast } from "@/hooks/useToast";
+import { ToastContainer } from "@/components/ui/Toast";
 import type { MorningMood } from "@/types";
 
 type DiaryTab = "morning" | "evening";
@@ -23,7 +25,9 @@ type DiaryTab = "morning" | "evening";
 export default function DiaryPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { toasts, close, success, error: showError } = useToast();
   const [tab, setTab] = useState<DiaryTab>("morning");
+  const [saving, setSaving] = useState(false);
 
   // ── 아침 기록 상태 ──
   const [bedtime, setBedtime] = useState("23:00");
@@ -111,59 +115,69 @@ export default function DiaryPage() {
 
   // ── 아침 저장 ──
   async function handleMorningSave() {
-    const entry = {
-      date: today,
-      bedtime,
-      wakeTime,
-      sleepOnsetLatency,
-      awakenings,
-      waso,
-      sleepQuality,
-      morningMood,
-      totalSleepTime,
-      sleepEfficiency,
-    };
+    setSaving(true);
+    try {
+      const entry = {
+        date: today,
+        bedtime,
+        wakeTime,
+        sleepOnsetLatency,
+        awakenings,
+        waso,
+        sleepQuality,
+        morningMood,
+        totalSleepTime,
+        sleepEfficiency,
+      };
 
-    // localStorage 저장
-    saveToLocalStorage(entry);
+      saveToLocalStorage(entry);
 
-    // Supabase 저장 (로그인 시)
-    if (user) {
-      await saveDiaryEntry(user.id, today, diaryToDb(entry));
+      if (user) {
+        const { error } = await saveDiaryEntry(user.id, today, diaryToDb(entry));
+        if (error) { showError("저장 중 오류가 발생했습니다"); return; }
+      }
+
+      success("아침 기록이 저장되었습니다");
+      setMorningSaved(true);
+    } finally {
+      setSaving(false);
     }
-
-    setMorningSaved(true);
   }
 
   // ── 저녁 저장 ──
   async function handleEveningSave() {
-    const eveningData = {
-      date: today,
-      stressLevel,
-      caffeine,
-      caffeineLastTime: caffeine ? caffeineLastTime : undefined,
-      exercise,
-      exerciseType: exercise ? exerciseType : undefined,
-      nap,
-      napDuration: nap ? napDuration : undefined,
-      worryNote: worryNote.trim() || undefined,
-    };
+    setSaving(true);
+    try {
+      const eveningData = {
+        date: today,
+        stressLevel,
+        caffeine,
+        caffeineLastTime: caffeine ? caffeineLastTime : undefined,
+        exercise,
+        exerciseType: exercise ? exerciseType : undefined,
+        nap,
+        napDuration: nap ? napDuration : undefined,
+        worryNote: worryNote.trim() || undefined,
+      };
 
-    // localStorage 저장
-    saveToLocalStorage(eveningData);
+      saveToLocalStorage(eveningData);
 
-    // Supabase 저장 (로그인 시)
-    if (user) {
-      await saveDiaryEntry(user.id, today, diaryToDb(eveningData));
+      if (user) {
+        const { error } = await saveDiaryEntry(user.id, today, diaryToDb(eveningData));
+        if (error) { showError("저장 중 오류가 발생했습니다"); return; }
+      }
+
+      success("저녁 기록이 저장되었습니다");
+      setEveningSaved(true);
+    } finally {
+      setSaving(false);
     }
-
-    setEveningSaved(true);
   }
 
   // ── 아침 완료 화면 ──
   if (tab === "morning" && morningSaved) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-6 max-w-md mx-auto">
+      <main className="min-h-screen flex flex-col items-center justify-center p-6 max-w-md mx-auto animate-scale-in">
         <div className="text-center">
           <p className="text-5xl mb-4">🌅</p>
           <h2 className="text-xl font-bold mb-2">아침 기록 완료!</h2>
@@ -201,7 +215,7 @@ export default function DiaryPage() {
   // ── 저녁 완료 화면 ──
   if (tab === "evening" && eveningSaved) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-6 max-w-md mx-auto">
+      <main className="min-h-screen flex flex-col items-center justify-center p-6 max-w-md mx-auto animate-scale-in">
         <div className="text-center">
           <p className="text-5xl mb-4">🌙</p>
           <h2 className="text-xl font-bold mb-2">저녁 기록 완료!</h2>
@@ -247,7 +261,8 @@ export default function DiaryPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-36">
+    <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-36 animate-fade-in">
+      <ToastContainer toasts={toasts} onClose={close} />
       {/* Header */}
       <div className="mb-4">
         <h1 className="text-xl font-bold mb-1">수면 일지</h1>
@@ -525,17 +540,18 @@ export default function DiaryPage() {
               variant="primary"
               size="lg"
               onClick={handleMorningSave}
-              disabled={morningMood === null}
+              disabled={morningMood === null || saving}
             >
-              아침 기록 완료
+              {saving ? "저장 중..." : "아침 기록 완료"}
             </Button>
           ) : (
             <Button
               variant="primary"
               size="lg"
               onClick={handleEveningSave}
+              disabled={saving}
             >
-              저녁 기록 완료
+              {saving ? "저장 중..." : "저녁 기록 완료"}
             </Button>
           )}
         </div>

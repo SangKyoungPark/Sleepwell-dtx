@@ -168,7 +168,7 @@ export default function ReportPage() {
     }));
 
   return (
-    <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20">
+    <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20 animate-fade-in">
       {/* Header */}
       <div className="mb-4">
         <h1 className="text-xl font-bold mb-1">나의 리포트</h1>

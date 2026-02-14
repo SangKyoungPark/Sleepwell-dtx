@@ -18,8 +18,8 @@ export function Button({
   return (
     <button
       className={cn(
-        "rounded-xl font-medium transition-all duration-200 cursor-pointer",
-        "disabled:opacity-40 disabled:cursor-not-allowed",
+        "rounded-xl font-medium transition-all duration-200 cursor-pointer active:scale-95",
+        "disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100",
         variant === "primary" &&
           "bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-light)]",
         variant === "secondary" &&

@@ -9,6 +9,7 @@ import {
   saveSessionProgress as saveSessionProgressDb,
   getSessionProgress,
 } from "@/lib/supabase/db";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 
 type View = "list" | "detail";
 
@@ -20,6 +21,7 @@ export default function SessionPage() {
   const [practiceChecks, setPracticeChecks] = useState<Record<string, boolean>>({});
   const [reflectionText, setReflectionText] = useState<Record<number, string>>({});
   const [expandedSection, setExpandedSection] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function SessionPage() {
       if (saved.practiceChecks) setPracticeChecks(saved.practiceChecks);
       if (saved.reflectionText) setReflectionText(saved.reflectionText);
     }
-    loadProgress();
+    loadProgress().finally(() => setLoading(false));
   }, [user]);
 
   function saveProgress(
@@ -97,6 +99,8 @@ export default function SessionPage() {
     return Math.round(((sectionDone + practiceDone + reflectionDone) / total) * 100);
   }
 
+  if (loading) return <PageSkeleton cards={3} />;
+
   const session = SESSIONS.find((s) => s.week === currentWeek);
 
   if (!session) {
@@ -117,7 +121,7 @@ export default function SessionPage() {
   // 리스트 뷰 (주차 목록)
   if (view === "list") {
     return (
-      <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20">
+      <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20 animate-fade-in">
         <div className="mb-6">
           <h1 className="text-xl font-bold mb-1">CBT-I 주간 세션</h1>
           <p className="text-sm text-[var(--color-muted)]">

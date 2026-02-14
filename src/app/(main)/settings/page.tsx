@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getProfile, updateProfile, getDiaryEntries, getMissionLogs } from "@/lib/supabase/db";
+import { useToast } from "@/hooks/useToast";
+import { ToastContainer } from "@/components/ui/Toast";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 
 interface UserProfile {
   name: string;
@@ -17,14 +20,14 @@ interface UserProfile {
 export default function SettingsPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { toasts, close, success, info } = useToast();
+  const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile>({
     name: "",
     startDate: "",
     currentWeek: 1,
   });
   const [showReset, setShowReset] = useState(false);
-  const [showExport, setShowExport] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [diaryCount, setDiaryCount] = useState(0);
   const [missionCount, setMissionCount] = useState(0);
 
@@ -60,6 +63,7 @@ export default function SettingsPage() {
         const checks = JSON.parse(localStorage.getItem("missionLog") || "{}");
         setMissionCount(Object.values(checks).filter(Boolean).length);
       }
+      setLoading(false);
     }
     loadSettings();
   }, [user]);
@@ -75,8 +79,7 @@ export default function SettingsPage() {
       });
     }
 
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    success("프로필이 저장되었습니다");
   }
 
   function exportData() {
@@ -97,8 +100,7 @@ export default function SettingsPage() {
     a.download = `sleepwell-backup-${new Date().toISOString().split("T")[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    setShowExport(true);
-    setTimeout(() => setShowExport(false), 3000);
+    info("데이터가 다운로드되었습니다");
   }
 
   function resetAllData() {
@@ -111,8 +113,11 @@ export default function SettingsPage() {
     window.location.reload();
   }
 
+  if (loading) return <PageSkeleton cards={4} />;
+
   return (
-    <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20">
+    <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20 animate-fade-in">
+      <ToastContainer toasts={toasts} onClose={close} />
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl font-bold mb-1">설정</h1>
@@ -167,7 +172,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <Button variant="primary" size="md" onClick={saveProfileHandler}>
-              {saved ? "저장 완료!" : "프로필 저장"}
+              프로필 저장
             </Button>
           </div>
         </div>
@@ -222,7 +227,7 @@ export default function SettingsPage() {
           </p>
           <div className="space-y-2">
             <Button variant="secondary" size="md" onClick={exportData}>
-              {showExport ? "다운로드 완료!" : "데이터 내보내기 (JSON)"}
+              데이터 내보내기 (JSON)
             </Button>
             {!showReset ? (
               <button
