@@ -29,6 +29,13 @@ const SYSTEM_PROMPT = `당신은 SleepWell의 AI 수면 코치입니다. CBT-I(�
 - 잠이 안 올 때 침대에서 나오기(자극 조절법)를 적극 권장합니다`;
 
 export async function POST(req: Request) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return new Response(
+      JSON.stringify({ error: "AI 기능이 설정되지 않았습니다. ANTHROPIC_API_KEY를 확인해주세요." }),
+      { status: 503, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   const { messages, sleepContext } = await req.json();
 
   // 수면 데이터 컨텍스트를 시스템 프롬프트에 추가

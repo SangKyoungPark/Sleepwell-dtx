@@ -97,7 +97,22 @@ export default function SessionPage() {
     return Math.round(((sectionDone + practiceDone + reflectionDone) / total) * 100);
   }
 
-  const session = SESSIONS.find((s) => s.week === currentWeek)!;
+  const session = SESSIONS.find((s) => s.week === currentWeek);
+
+  if (!session) {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center p-6 max-w-md mx-auto pb-20">
+        <p className="text-4xl mb-4">📚</p>
+        <p className="text-lg font-bold mb-2">세션을 찾을 수 없습니다</p>
+        <button
+          onClick={() => { setCurrentWeek(1); setView("list"); }}
+          className="mt-3 px-4 py-2 bg-[var(--color-primary)] text-white rounded-xl text-sm cursor-pointer"
+        >
+          세션 목록으로
+        </button>
+      </main>
+    );
+  }
 
   // 리스트 뷰 (주차 목록)
   if (view === "list") {

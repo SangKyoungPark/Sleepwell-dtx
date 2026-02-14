@@ -39,19 +39,19 @@ function AssessmentResult() {
     }
   }, [user, scoresParam, totalParam]);
 
-  if (!scoresParam || !totalParam) {
+  const scores = scoresParam ? scoresParam.split(",").map(Number) : [];
+  const totalScore = totalParam ? parseInt(totalParam, 10) : NaN;
+
+  if (!scoresParam || !totalParam || scores.some(isNaN) || isNaN(totalScore) || scores.length !== ISI_QUESTIONS.length) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center p-6">
-        <p className="text-[var(--color-muted)]">진단 데이터가 없습니다.</p>
+        <p className="text-[var(--color-muted)]">진단 데이터가 없거나 형식이 잘못되었습니다.</p>
         <Link href="/assessment" className="mt-4 text-[var(--color-primary-light)] underline">
           진단하러 가기
         </Link>
       </main>
     );
   }
-
-  const scores = scoresParam.split(",").map(Number);
-  const totalScore = parseInt(totalParam, 10);
   const severity = getInsomniaSeverity(totalScore);
   const severityInfo = ISI_SEVERITY_RANGES[severity];
 

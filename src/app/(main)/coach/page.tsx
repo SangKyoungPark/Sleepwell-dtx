@@ -27,8 +27,8 @@ function buildSleepContext(): string {
         );
       if (entry.sleepEfficiency) parts.push(`수면효율 ${entry.sleepEfficiency}%`);
       if (entry.sleepQuality) parts.push(`수면품질 ${entry.sleepQuality}/5`);
-      if (entry.sleepLatency) parts.push(`입면잠복기 ${entry.sleepLatency}분`);
-      if (entry.wakeCount) parts.push(`깬횟수 ${entry.wakeCount}회`);
+      if (entry.sleepOnsetLatency) parts.push(`입면잠복기 ${entry.sleepOnsetLatency}분`);
+      if (entry.awakenings) parts.push(`깬횟수 ${entry.awakenings}회`);
       if (entry.morningMood) parts.push(`아침기분: ${entry.morningMood}`);
       if (entry.stressLevel) parts.push(`스트레스 ${entry.stressLevel}/10`);
       if (entry.caffeine) parts.push(`카페인 섭취`);

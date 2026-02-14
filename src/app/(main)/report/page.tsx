@@ -53,9 +53,21 @@ export default function ReportPage() {
       if (user) {
         const { data } = await getDiaryEntries(user.id);
         if (data) {
-          const entries = data.map((row: Record<string, unknown>) => dbToDiary(row));
-          localStorage.setItem("sleepDiary", JSON.stringify(entries));
-          setEntries(entries as unknown as DiaryEntry[]);
+          const converted = data.map((row: Record<string, unknown>) => dbToDiary(row));
+          localStorage.setItem("sleepDiary", JSON.stringify(converted));
+          setEntries(converted.map((e) => ({
+            date: String(e.date || ""),
+            bedtime: String(e.bedtime || ""),
+            wakeTime: String(e.wakeTime || ""),
+            sleepOnsetLatency: Number(e.sleepOnsetLatency) || 0,
+            awakenings: Number(e.awakenings) || 0,
+            waso: Number(e.waso) || 0,
+            sleepQuality: Number(e.sleepQuality) || 0,
+            morningMood: String(e.morningMood || ""),
+            totalSleepTime: Number(e.totalSleepTime) || 0,
+            sleepEfficiency: Number(e.sleepEfficiency) || 0,
+            stressLevel: e.stressLevel != null ? Number(e.stressLevel) : undefined,
+          })));
           return;
         }
       }

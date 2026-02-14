@@ -24,6 +24,13 @@ const SYSTEM_PROMPT = `당신은 수면 데이터를 분석하는 전문 AI 분�
 }`;
 
 export async function POST(req: Request) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return Response.json(
+      { error: "AI 기능이 설정되지 않았습니다. ANTHROPIC_API_KEY를 확인해주세요." },
+      { status: 503 },
+    );
+  }
+
   const { sleepData } = await req.json();
 
   if (!sleepData || sleepData === "수면 기록이 없습니다.") {

@@ -73,6 +73,7 @@ export async function saveDiaryEntry(
       { user_id: userId, date, ...data },
       { onConflict: "user_id,date" },
     );
+  if (error) console.error("[DB] saveDiaryEntry:", error.message);
   return { error };
 }
 
@@ -149,6 +150,7 @@ export async function saveSessionProgress(
       },
       { onConflict: "user_id" },
     );
+  if (error) console.error("[DB] saveSessionProgress:", error.message);
   return { error };
 }
 
@@ -179,6 +181,7 @@ export async function saveAssessment(
       total_score: totalScore,
       severity,
     });
+  if (error) console.error("[DB] saveAssessment:", error.message);
   return { error };
 }
 
