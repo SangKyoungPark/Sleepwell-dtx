@@ -12,7 +12,6 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
@@ -49,40 +48,9 @@ export default function SignupPage() {
         .eq("id", data.user.id);
     }
 
-    // 이메일 확인이 필요한 경우
-    if (data.user && !data.session) {
-      setSuccess(true);
-      setLoading(false);
-      return;
-    }
-
-    // 바로 로그인된 경우
-    router.push("/onboarding");
+    // 가입 완료 → 홈으로 이동
+    router.push("/home");
     router.refresh();
-  }
-
-  if (success) {
-    return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-6 max-w-md mx-auto">
-        <div className="text-center">
-          <p className="text-5xl mb-4">📧</p>
-          <h2 className="text-xl font-bold mb-2">이메일을 확인해주세요</h2>
-          <p className="text-sm text-[var(--color-muted)] mb-6">
-            <span className="text-[var(--color-primary-light)]">{email}</span>
-            으로<br />인증 링크를 보냈습니다.
-          </p>
-          <p className="text-xs text-[var(--color-muted)] mb-8">
-            이메일의 링크를 클릭하면 가입이 완료됩니다.
-          </p>
-          <Link
-            href="/login"
-            className="inline-block px-6 py-3 bg-[var(--color-primary)] text-white rounded-xl font-medium"
-          >
-            로그인 페이지로
-          </Link>
-        </div>
-      </main>
-    );
   }
 
   return (
