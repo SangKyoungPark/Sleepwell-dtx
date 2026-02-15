@@ -44,7 +44,7 @@ export default function OnboardingPage() {
   function next() {
     if (isLast) {
       localStorage.setItem("onboardingDone", "true");
-      router.push("/assessment");
+      router.push("/signup");
     } else {
       setCurrent(current + 1);
     }
@@ -52,7 +52,7 @@ export default function OnboardingPage() {
 
   function skip() {
     localStorage.setItem("onboardingDone", "true");
-    router.push("/assessment");
+    router.push("/signup");
   }
 
   return (

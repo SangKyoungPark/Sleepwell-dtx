@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/home", icon: "🏠", label: "홈" },
   { href: "/coach", icon: "🤖", label: "코치" },
   { href: "/report", icon: "📊", label: "리포트" },
+  { href: "/settings", icon: "⚙️", label: "설정" },
 ];
 
 export function BottomNav() {
