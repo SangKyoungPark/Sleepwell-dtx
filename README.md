@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  SleepWell
+  SleepWell DTx
   <br>
 </h1>
 
@@ -15,14 +15,20 @@
   <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react" alt="React">
   <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript" alt="TypeScript">
   <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss" alt="Tailwind">
+  <img src="https://img.shields.io/badge/Supabase-Backend-3FCF8E?logo=supabase" alt="Supabase">
+  <img src="https://img.shields.io/badge/Vercel-Deployed-000?logo=vercel" alt="Vercel">
   <img src="https://img.shields.io/badge/License-ISC-green" alt="License">
+</p>
+
+<p align="center">
+  <a href="https://sleepwell-dtx.vercel.app">Live Demo</a>
 </p>
 
 ---
 
 ## 소개
 
-**SleepWell**은 인지행동치료(CBT-I)를 기반으로 한 불면증 자가관리 웹앱입니다.
+**SleepWell DTx**는 인지행동치료(CBT-I)를 기반으로 한 불면증 자가관리 웹앱입니다.
 
 불면증으로 고통받는 사람들에게 **"왜 잠을 못 자는가"가 아닌, "어떻게 하면 잘 잘 수 있는가"**에 초점을 맞춰 실질적인 수면 개선 솔루션을 제공합니다.
 
@@ -48,24 +54,34 @@
 - 문항별 점수 선택 (0~4점)
 - 총점 기반 심각도 분류 (정상 / 경미 / 중등도 / 중증)
 - 시각적 결과 리포트
+- 진단 이력 클라우드 저장
 
-### 수면 일지 *(개발 예정)*
+### 수면 일지
 - 아침: 취침/기상 시각, 잠들기까지 시간, 깬 횟수, 수면 품질
 - 저녁: 스트레스, 카페인, 운동, 걱정 기록
 - 자동 계산: 총 수면시간, 수면효율(%)
+- Supabase DB 동기화
 
-### 오늘의 미션 *(개발 예정)*
+### 오늘의 미션
 - 6주간 점진적 난이도의 일일 미션
 - 쉬운 습관부터 시작 → 성공 경험 쌓기
+- 완료 상태 클라우드 저장
 
-### CBT-I 주간 세션 *(개발 예정)*
+### CBT-I 주간 세션
 - 주차별 교육 + 실습 (수면교육, 수면위생, 이완훈련, 인지재구성, 수면제한)
+- 섹션별 진행률 추적
+- 실습 체크 + 성찰 기록
 
-### 이완 도구 *(개발 예정)*
+### AI 수면 코치
+- Claude AI 기반 대화형 수면 코칭
+- 수면 관련 고민 상담
+- 개인화된 수면 개선 조언
+
+### 이완 도구
 - 4-7-8 호흡법, 점진적 근이완법, 바디스캔 명상
 
-### 나의 리포트 *(개발 예정)*
-- 수면효율 트렌드 차트
+### 나의 리포트
+- 수면효율 트렌드 차트 (Recharts)
 - 스트레스-수면 상관관계 분석
 - 주간 변화 리포트
 
@@ -78,7 +94,10 @@
 | Framework | Next.js 16 (App Router) |
 | Language | TypeScript 5.9 |
 | UI | React 19 + Tailwind CSS 4 |
-| 형태 | PWA (Progressive Web App) |
+| Backend | Supabase (Auth + PostgreSQL + RLS) |
+| AI | Anthropic Claude (AI SDK) |
+| Chart | Recharts |
+| Deploy | Vercel |
 
 ---
 
@@ -87,6 +106,8 @@
 ### 사전 요구사항
 - Node.js 18+
 - npm
+- Supabase 프로젝트 (무료 플랜 가능)
+- Anthropic API Key (AI 코치 기능용)
 
 ### 설치 및 실행
 
@@ -98,7 +119,28 @@ cd Sleepwell-dtx
 # 의존성 설치
 npm install
 
-# 개발 서버 실행
+# 환경변수 설정
+cp .env.local.example .env.local
+# .env.local 파일을 편집하여 실제 값 입력
+```
+
+### 환경변수
+
+`.env.local` 파일에 아래 값을 설정합니다:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+ANTHROPIC_API_KEY=your-anthropic-api-key-here
+```
+
+### 데이터베이스 설정
+
+Supabase Dashboard → SQL Editor에서 `supabase/schema.sql` 내용을 실행합니다.
+
+### 개발 서버 실행
+
+```bash
 npm run dev
 ```
 
@@ -118,16 +160,19 @@ npm run start
 ```
 src/
 ├── app/
-│   ├── (auth)/           # 온보딩, ISI 진단
-│   ├── (main)/           # 홈, 일지, 미션, 세션, 이완, 리포트, 설정
+│   ├── (auth)/           # 로그인, 회원가입, 온보딩, ISI 진단
+│   ├── (main)/           # 홈, 일지, 미션, 세션, 이완, 코치, 리포트, 설정
+│   ├── api/              # API 라우트 (AI 챗)
+│   ├── auth/             # OAuth 콜백
 │   ├── globals.css       # 다크 테마 스타일
 │   ├── layout.tsx        # 루트 레이아웃
 │   └── page.tsx          # 랜딩 페이지
 ├── components/
 │   └── ui/               # 공통 UI 컴포넌트
-├── hooks/                # 커스텀 훅
+├── hooks/                # 커스텀 훅 (useAuth, useToast)
 ├── lib/
 │   ├── constants.ts      # ISI 문항, 프로그램 상수
+│   ├── supabase/         # Supabase 클라이언트, DB 함수, 미들웨어
 │   └── utils.ts          # 수면 계산 유틸리티
 └── types/
     └── index.ts          # TypeScript 타입 정의
