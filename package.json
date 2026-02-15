@@ -19,6 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.43",
+    "@ai-sdk/google": "^3.0.29",
     "@ai-sdk/react": "^3.0.87",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",

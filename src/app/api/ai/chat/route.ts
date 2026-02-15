@@ -1,4 +1,4 @@
-import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
 import { streamText } from "ai";
 
 export const maxDuration = 30;
@@ -29,9 +29,9 @@ const SYSTEM_PROMPT = `당신은 SleepWell의 AI 수면 코치입니다. CBT-I(�
 - 잠이 안 올 때 침대에서 나오기(자극 조절법)를 적극 권장합니다`;
 
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
     return new Response(
-      JSON.stringify({ error: "AI 기능이 설정되지 않았습니다. ANTHROPIC_API_KEY를 확인해주세요." }),
+      JSON.stringify({ error: "AI 기능이 설정되지 않았습니다. GOOGLE_GENERATIVE_AI_API_KEY를 확인해주세요." }),
       { status: 503, headers: { "Content-Type": "application/json" } },
     );
   }
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     contextPrompt += `\n\n## 사용자의 최근 수면 데이터\n${sleepContext}`;
   }
 
-  // UIMessage (parts 형식) → ModelMessage (content 형식) 변환
+  // 메시지 형식 통일
   const convertedMessages = messages.map(
     (msg: { role: string; parts?: { type: string; text: string }[]; content?: string }) => ({
       role: msg.role,
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
   );
 
   const result = streamText({
-    model: anthropic("claude-sonnet-4-5-20250929"),
+    model: google("gemini-2.0-flash"),
     system: contextPrompt,
     messages: convertedMessages,
   });
