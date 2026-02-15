@@ -1,8 +1,12 @@
 "use client";
 
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
+
+interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+}
 
 // 수면 데이터 컨텍스트 생성
 function buildSleepContext(): string {
@@ -66,61 +70,97 @@ const QUICK_QUESTIONS = [
   "자기 전 루틴 추천해주세요",
 ];
 
+const WELCOME_TEXT =
+  "안녕하세요! 저는 SleepWell AI 수면 코치입니다.\n\n수면에 관한 고민이 있으시면 편하게 말씀해주세요. 수면 일지 데이터를 바탕으로 개인화된 조언을 드릴 수 있어요.\n\n아래 질문을 선택하거나, 직접 입력해보세요!";
+
 export default function CoachPage() {
-  const [sleepContext, setSleepContext] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const sleepContextRef = useRef("");
 
   useEffect(() => {
-    setSleepContext(buildSleepContext());
+    sleepContextRef.current = buildSleepContext();
   }, []);
-
-  const transport = useMemo(
-    () =>
-      new DefaultChatTransport({
-        api: "/api/ai/chat",
-        body: { sleepContext },
-      }),
-    [sleepContext],
-  );
-
-  const { messages, sendMessage, status } = useChat({ transport });
-
-  const isLoading = status === "submitted" || status === "streaming";
 
   // 자동 스크롤
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  function handleSend(text?: string) {
+  async function handleSend(text?: string) {
     const msg = text || inputText.trim();
     if (!msg || isLoading) return;
-    sendMessage({ text: msg });
+
     setInputText("");
-  }
+    setError("");
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function getMessageText(message: any): string {
-    if (message.parts) {
-      return message.parts
-        .filter((p: { type: string }) => p.type === "text")
-        .map((p: { text: string }) => p.text)
-        .join("");
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: "user",
+      text: msg,
+    };
+
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: updatedMessages.map((m) => ({
+            role: m.role,
+            content: m.text,
+          })),
+          sleepContext: sleepContextRef.current,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.error || `서버 오류 (${res.status})`);
+      }
+
+      const assistantId = (Date.now() + 1).toString();
+
+      // 스트리밍 응답 읽기
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error("응답을 읽을 수 없습니다");
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        { id: assistantId, role: "assistant", text: "" },
+      ]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId ? { ...m, text: m.text + chunk } : m,
+          ),
+        );
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "알 수 없는 오류");
+    } finally {
+      setIsLoading(false);
     }
-    return message.content || "";
   }
 
-  const WELCOME_TEXT =
-    "안녕하세요! 저는 SleepWell AI 수면 코치입니다.\n\n수면에 관한 고민이 있으시면 편하게 말씀해주세요. 수면 일지 데이터를 바탕으로 개인화된 조언을 드릴 수 있어요.\n\n아래 질문을 선택하거나, 직접 입력해보세요!";
-
-  const allMessages = [
-    { id: "welcome", role: "assistant" as const, text: WELCOME_TEXT },
-    ...messages.map((m) => ({
-      id: m.id,
-      role: m.role as "user" | "assistant",
-      text: getMessageText(m),
-    })),
+  const allMessages: ChatMessage[] = [
+    { id: "welcome", role: "assistant", text: WELCOME_TEXT },
+    ...messages,
   ];
 
   return (
@@ -185,6 +225,13 @@ export default function CoachPage() {
                 {q}
               </button>
             ))}
+          </div>
+        )}
+
+        {/* 에러 표시 */}
+        {error && (
+          <div className="bg-red-500/10 rounded-xl px-4 py-3 text-sm text-red-400">
+            {error}
           </div>
         )}
 
