@@ -63,5 +63,5 @@ export async function POST(req: Request) {
     messages: convertedMessages,
   });
 
-  return result.toTextStreamResponse();
+  return result.toUIMessageStreamResponse();
 }
