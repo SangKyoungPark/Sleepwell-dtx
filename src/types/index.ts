@@ -116,6 +116,14 @@ export interface SessionProgress {
   reflection?: string;
 }
 
+// --- Chat Message (AI 코치 채팅) ---
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  status?: "sending" | "done" | "error";
+}
+
 // --- Report (리포트 관련) ---
 export interface WeeklyReport {
   weekStart: string; // YYYY-MM-DD

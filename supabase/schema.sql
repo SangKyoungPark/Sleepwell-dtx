@@ -143,3 +143,27 @@ CREATE TRIGGER on_auth_user_created
 CREATE INDEX idx_sleep_diary_user_date ON sleep_diary(user_id, date DESC);
 CREATE INDEX idx_mission_logs_user ON mission_logs(user_id);
 CREATE INDEX idx_assessments_user ON assessments(user_id, created_at DESC);
+
+-- ============================================
+-- 6. AI 코치 채팅 메시지
+-- ============================================
+
+CREATE TABLE chat_messages (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  session_id TEXT NOT NULL,           -- 대화 세션 구분
+  role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own chat messages"
+  ON chat_messages FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own chat messages"
+  ON chat_messages FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own chat messages"
+  ON chat_messages FOR DELETE USING (auth.uid() = user_id);
+
+CREATE INDEX idx_chat_messages_user_session ON chat_messages(user_id, session_id, created_at ASC);

@@ -195,6 +195,55 @@ export async function getAssessments(userId: string) {
   return { data, error };
 }
 
+// ── AI 코치 채팅 ──
+
+export async function saveChatMessage(
+  userId: string,
+  sessionId: string,
+  role: "user" | "assistant",
+  content: string,
+) {
+  const sb = supabase();
+  const { error } = await sb
+    .from("chat_messages")
+    .insert({ user_id: userId, session_id: sessionId, role, content });
+  if (error) console.error("[DB] saveChatMessage:", error.message);
+  return { error };
+}
+
+export async function getChatMessages(userId: string, sessionId: string) {
+  const sb = supabase();
+  const { data, error } = await sb
+    .from("chat_messages")
+    .select("id, role, content, created_at")
+    .eq("user_id", userId)
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: true });
+  return { data, error };
+}
+
+export async function getLatestSessionId(userId: string) {
+  const sb = supabase();
+  const { data, error } = await sb
+    .from("chat_messages")
+    .select("session_id")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  return { data: data?.[0]?.session_id ?? null, error };
+}
+
+export async function deleteChatSession(userId: string, sessionId: string) {
+  const sb = supabase();
+  const { error } = await sb
+    .from("chat_messages")
+    .delete()
+    .eq("user_id", userId)
+    .eq("session_id", sessionId);
+  if (error) console.error("[DB] deleteChatSession:", error.message);
+  return { error };
+}
+
 // ── 프로필 ──
 
 export async function getProfile(userId: string) {
