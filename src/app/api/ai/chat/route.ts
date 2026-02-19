@@ -1,4 +1,4 @@
-import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
 import { streamText } from "ai";
 
 export const maxDuration = 30;
@@ -29,30 +29,14 @@ const SYSTEM_PROMPT = `당신은 SleepWell의 AI 수면 코치입니다. CBT-I(�
 - 잠이 안 올 때 침대에서 나오기(자극 조절법)를 적극 권장합니다`;
 
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
     return new Response(
-      JSON.stringify({ error: "AI 기능이 설정되지 않았습니다. ANTHROPIC_API_KEY를 확인해주세요." }),
+      JSON.stringify({ error: "AI 기능이 설정되지 않았습니다. GOOGLE_GENERATIVE_AI_API_KEY를 확인해주세요." }),
       { status: 503, headers: { "Content-Type": "application/json" } },
     );
   }
 
-  let body;
-  try {
-    body = await req.json();
-  } catch {
-    return Response.json({ error: "잘못된 요청 형식입니다." }, { status: 400 });
-  }
-
-  const { messages, sleepContext } = body;
-
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return Response.json({ error: "메시지가 필요합니다." }, { status: 400 });
-  }
-
-  // 메시지 수 제한
-  if (messages.length > 50) {
-    return Response.json({ error: "대화가 너무 깁니다. 새 대화를 시작해주세요." }, { status: 400 });
-  }
+  const { messages, sleepContext } = await req.json();
 
   // 수면 데이터 컨텍스트를 시스템 프롬프트에 추가
   let contextPrompt = SYSTEM_PROMPT;
@@ -63,7 +47,7 @@ export async function POST(req: Request) {
   // 메시지 형식 통일
   const convertedMessages = messages.map(
     (msg: { role: string; parts?: { type: string; text: string }[]; content?: string }) => ({
-      role: msg.role as "user" | "assistant",
+      role: msg.role,
       content: msg.parts
         ? msg.parts
             .filter((p) => p.type === "text")
@@ -73,16 +57,11 @@ export async function POST(req: Request) {
     }),
   );
 
-  try {
-    const result = streamText({
-      model: anthropic("claude-sonnet-4-5-20250929"),
-      system: contextPrompt,
-      messages: convertedMessages,
-    });
+  const result = streamText({
+    model: google("gemini-2.0-flash"),
+    system: contextPrompt,
+    messages: convertedMessages,
+  });
 
-    return result.toTextStreamResponse();
-  } catch (err) {
-    console.error("[AI Chat]", err);
-    return Response.json({ error: "AI 응답 생성에 실패했습니다." }, { status: 500 });
-  }
+  return result.toTextStreamResponse();
 }
