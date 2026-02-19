@@ -39,13 +39,11 @@ export async function POST(req: Request) {
   try {
     const { messages, sleepContext } = await req.json();
 
-    // 수면 데이터 컨텍스트를 시스템 프롬프트에 추가
     let contextPrompt = SYSTEM_PROMPT;
     if (sleepContext) {
       contextPrompt += `\n\n## 사용자의 최근 수면 데이터\n${sleepContext}`;
     }
 
-    // 메시지 형식 통일
     const convertedMessages = messages.map(
       (msg: { role: string; parts?: { type: string; text: string }[]; content?: string }) => ({
         role: msg.role,
@@ -64,7 +62,30 @@ export async function POST(req: Request) {
       messages: convertedMessages,
     });
 
-    return result.toTextStreamResponse();
+    // 수동 스트리밍 — 에러를 클라이언트에 전달
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of result.textStream) {
+            controller.enqueue(encoder.encode(chunk));
+          }
+          controller.close();
+        } catch (err) {
+          const errorMsg = err instanceof Error ? err.message : "AI 응답 생성 실패";
+          console.error("[AI Chat] Stream error:", errorMsg);
+          controller.enqueue(encoder.encode(`\n[오류: ${errorMsg}]`));
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+      },
+    });
   } catch (err) {
     console.error("[AI Chat] Error:", err);
     return new Response(
