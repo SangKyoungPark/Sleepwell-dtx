@@ -50,18 +50,20 @@ export default function SettingsPage() {
         if (missionData) setMissionCount(Object.values(missionData).filter(Boolean).length);
       } else {
         // localStorage 폴백
-        const data = JSON.parse(localStorage.getItem("userProfile") || "{}");
-        if (data.name) {
-          setProfile(data);
-        } else {
-          setProfile((prev) => ({
-            ...prev,
-            startDate: new Date().toISOString().split("T")[0],
-          }));
-        }
-        setDiaryCount(JSON.parse(localStorage.getItem("sleepDiary") || "[]").length);
-        const checks = JSON.parse(localStorage.getItem("missionLog") || "{}");
-        setMissionCount(Object.values(checks).filter(Boolean).length);
+        try {
+          const data = JSON.parse(localStorage.getItem("userProfile") || "{}");
+          if (data.name) {
+            setProfile(data);
+          } else {
+            setProfile((prev) => ({
+              ...prev,
+              startDate: new Date().toISOString().split("T")[0],
+            }));
+          }
+          setDiaryCount(JSON.parse(localStorage.getItem("sleepDiary") || "[]").length);
+          const checks = JSON.parse(localStorage.getItem("missionLog") || "{}");
+          setMissionCount(Object.values(checks).filter(Boolean).length);
+        } catch { /* localStorage 데이터 손상 시 기본값 유지 */ }
       }
       setLoading(false);
     }
@@ -72,11 +74,15 @@ export default function SettingsPage() {
     localStorage.setItem("userProfile", JSON.stringify(profile));
 
     if (user) {
-      await updateProfile(user.id, {
+      const { error } = await updateProfile(user.id, {
         name: profile.name,
         start_date: profile.startDate,
         current_week: profile.currentWeek,
       });
+      if (error) {
+        info("로컬에 저장되었습니다 (서버 동기화 실패)");
+        return;
+      }
     }
 
     success("프로필이 저장되었습니다");
@@ -99,15 +105,29 @@ export default function SettingsPage() {
     a.href = url;
     a.download = `sleepwell-backup-${new Date().toISOString().split("T")[0]}.json`;
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     info("데이터가 다운로드되었습니다");
   }
 
-  function resetAllData() {
+  async function resetAllData() {
     localStorage.removeItem("sleepDiary");
     localStorage.removeItem("missionLog");
     localStorage.removeItem("sessionProgress");
     localStorage.removeItem("userProfile");
+
+    // Supabase 서버 데이터도 삭제
+    if (user) {
+      const sb = createClient();
+      if (sb) {
+        await Promise.all([
+          sb.from("sleep_diary").delete().eq("user_id", user.id),
+          sb.from("mission_logs").delete().eq("user_id", user.id),
+          sb.from("session_progress").delete().eq("user_id", user.id),
+          sb.from("assessments").delete().eq("user_id", user.id),
+        ]);
+      }
+    }
+
     setProfile({ name: "", startDate: new Date().toISOString().split("T")[0], currentWeek: 1 });
     setShowReset(false);
     window.location.reload();
@@ -261,20 +281,22 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* 로그아웃 */}
-        <button
-          onClick={async () => {
-            const supabase = createClient();
-            if (supabase) {
-              await supabase.auth.signOut();
-            }
-            router.push("/login");
-            router.refresh();
-          }}
-          className="w-full py-3 rounded-2xl text-sm font-medium bg-[var(--color-surface)] text-[var(--color-muted)] cursor-pointer hover:text-white transition-colors"
-        >
-          로그아웃
-        </button>
+        {/* 로그아웃 (로그인 사용자만) */}
+        {user && (
+          <button
+            onClick={async () => {
+              const supabase = createClient();
+              if (supabase) {
+                await supabase.auth.signOut();
+              }
+              router.push("/login");
+              router.refresh();
+            }}
+            className="w-full py-3 rounded-2xl text-sm font-medium bg-[var(--color-surface)] text-[var(--color-muted)] cursor-pointer hover:text-white transition-colors"
+          >
+            로그아웃
+          </button>
+        )}
 
         {/* 앱 정보 */}
         <div className="bg-[var(--color-surface)] rounded-2xl p-4">

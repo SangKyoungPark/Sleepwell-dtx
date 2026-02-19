@@ -12,18 +12,13 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [saveEmail, setSaveEmail] = useState(false);
-  const [autoLogin, setAutoLogin] = useState(false);
 
-  // 저장된 이메일 및 설정 불러오기
+  // 저장된 이메일 불러오기
   useEffect(() => {
     const saved = localStorage.getItem("savedEmail");
-    const savedAutoLogin = localStorage.getItem("autoLogin");
     if (saved) {
       setEmail(saved);
       setSaveEmail(true);
-    }
-    if (savedAutoLogin === "true") {
-      setAutoLogin(true);
     }
   }, []);
 
@@ -59,9 +54,6 @@ export default function LoginPage() {
     } else {
       localStorage.removeItem("savedEmail");
     }
-
-    // 자동 로그인 설정 저장
-    localStorage.setItem("autoLogin", autoLogin ? "true" : "false");
 
     router.push("/home");
     router.refresh();
@@ -111,8 +103,8 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* 아이디 저장 / 자동 로그인 */}
-          <div className="flex items-center justify-between text-sm">
+          {/* 아이디 저장 */}
+          <div className="flex items-center text-sm">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -121,15 +113,6 @@ export default function LoginPage() {
                 className="w-4 h-4 rounded accent-[var(--color-primary)]"
               />
               <span className="text-[var(--color-muted)]">아이디 저장</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={autoLogin}
-                onChange={(e) => setAutoLogin(e.target.checked)}
-                className="w-4 h-4 rounded accent-[var(--color-primary)]"
-              />
-              <span className="text-[var(--color-muted)]">자동 로그인</span>
             </label>
           </div>
 

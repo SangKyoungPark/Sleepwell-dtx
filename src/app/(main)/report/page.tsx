@@ -71,8 +71,25 @@ export default function ReportPage() {
           return;
         }
       }
-      const data = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
-      setEntries(data);
+      try {
+        const raw = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
+        const data = (Array.isArray(raw) ? raw : []).map((e: Record<string, unknown>) => ({
+          date: String(e.date || ""),
+          bedtime: String(e.bedtime || ""),
+          wakeTime: String(e.wakeTime || ""),
+          sleepOnsetLatency: Number(e.sleepOnsetLatency) || 0,
+          awakenings: Number(e.awakenings) || 0,
+          waso: Number(e.waso) || 0,
+          sleepQuality: Number(e.sleepQuality) || 0,
+          morningMood: String(e.morningMood || ""),
+          totalSleepTime: Number(e.totalSleepTime) || 0,
+          sleepEfficiency: Number(e.sleepEfficiency) || 0,
+          stressLevel: e.stressLevel != null ? Number(e.stressLevel) : undefined,
+        }));
+        setEntries(data);
+      } catch {
+        setEntries([]);
+      }
     }
     loadEntries();
   }, [user]);

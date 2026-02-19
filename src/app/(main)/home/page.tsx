@@ -28,13 +28,19 @@ const MOOD_EMOJI: Record<string, string> = {
 export default function HomePage() {
   const { user } = useAuth();
   const [lastEntry, setLastEntry] = useState<DiaryEntry | null>(null);
-  const [currentWeek] = useState(1);
+  const [currentWeek, setCurrentWeek] = useState(1);
   const [currentDay, setCurrentDay] = useState(1);
   const [missionDone, setMissionDone] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
+      // 프로필에서 currentWeek 로드
+      try {
+        const savedProfile = JSON.parse(localStorage.getItem("userProfile") || "{}");
+        if (savedProfile.currentWeek) setCurrentWeek(savedProfile.currentWeek);
+      } catch { /* ignore */ }
+
       let data: Record<string, unknown>[] = [];
 
       if (user) {
@@ -44,7 +50,11 @@ export default function HomePage() {
           localStorage.setItem("sleepDiary", JSON.stringify(data));
         }
       } else {
-        data = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
+        try {
+          data = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
+        } catch {
+          data = [];
+        }
       }
 
       if (data.length > 0) {

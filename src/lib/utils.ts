@@ -15,8 +15,15 @@ export function getInsomniaSeverity(totalScore: number): InsomniaSeverity {
  * 자정 넘김 처리 포함
  */
 export function calculateTimeInBed(bedtime: string, wakeTime: string): number {
-  const [bH, bM] = bedtime.split(":").map(Number);
-  const [wH, wM] = wakeTime.split(":").map(Number);
+  const bParts = bedtime?.split(":").map(Number);
+  const wParts = wakeTime?.split(":").map(Number);
+
+  if (!bParts || bParts.length < 2 || !wParts || wParts.length < 2) return 0;
+
+  const [bH, bM] = bParts;
+  const [wH, wM] = wParts;
+
+  if (isNaN(bH) || isNaN(bM) || isNaN(wH) || isNaN(wM)) return 0;
 
   let bedMinutes = bH * 60 + bM;
   let wakeMinutes = wH * 60 + wM;

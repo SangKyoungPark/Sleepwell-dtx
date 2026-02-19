@@ -40,15 +40,15 @@ export default function SignupPage() {
       return;
     }
 
-    // 프로필에 이름 저장 (트리거로 생성된 프로필에 이름 업데이트)
+    // 프로필에 이름 저장 (트리거로 생성된 프로필에 이름 업데이트, 없으면 생성)
     if (data.user) {
       await supabase
         .from("profiles")
-        .update({ name })
-        .eq("id", data.user.id);
+        .upsert({ id: data.user.id, name }, { onConflict: "id" });
     }
 
     // 가입 완료 → 홈으로 이동
+    setLoading(false);
     router.push("/home");
     router.refresh();
   }

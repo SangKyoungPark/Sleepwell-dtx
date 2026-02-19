@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import Link from "next/link";
 import { getInsomniaSeverity } from "@/lib/utils";
 import { ISI_SEVERITY_RANGES, ISI_QUESTIONS } from "@/lib/constants";
@@ -17,8 +17,8 @@ const SEVERITY_COLORS = {
 } as const;
 
 const SEVERITY_BG = {
-  none: "bg-[var(--color-success)]/10 border-[var(--color-success)]/30",
-  mild: "bg-[var(--color-warning)]/10 border-[var(--color-warning)]/30",
+  none: "bg-green-500/10 border-green-500/30",
+  mild: "bg-yellow-500/10 border-yellow-500/30",
   moderate: "bg-orange-400/10 border-orange-400/30",
   severe: "bg-red-400/10 border-red-400/30",
 } as const;
@@ -28,10 +28,13 @@ function AssessmentResult() {
   const searchParams = useSearchParams();
   const scoresParam = searchParams.get("scores");
   const totalParam = searchParams.get("total");
+  const savedRef = useRef(false);
 
-  // Supabase에 ISI 결과 저장
+  // Supabase에 ISI 결과 저장 (한 번만)
   useEffect(() => {
+    if (savedRef.current) return;
     if (user && scoresParam && totalParam) {
+      savedRef.current = true;
       const scores = scoresParam.split(",").map(Number);
       const totalScore = parseInt(totalParam, 10);
       const severity = getInsomniaSeverity(totalScore);

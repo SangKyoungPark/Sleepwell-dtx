@@ -73,9 +73,14 @@
 - 실습 체크 + 성찰 기록
 
 ### AI 수면 코치
-- Claude AI 기반 대화형 수면 코칭
+- Google Gemini 기반 대화형 수면 코칭 (실시간 스트리밍)
 - 수면 관련 고민 상담
 - 개인화된 수면 개선 조언
+
+### AI 주간 분석
+- Claude AI 기반 수면 데이터 자동 분석
+- 수면 건강 점수 및 등급 산출
+- 주간 트렌드 파악 + 실행 가능한 개선 팁
 
 ### 이완 도구
 - 4-7-8 호흡법, 점진적 근이완법, 바디스캔 명상
@@ -95,7 +100,7 @@
 | Language | TypeScript 5.9 |
 | UI | React 19 + Tailwind CSS 4 |
 | Backend | Supabase (Auth + PostgreSQL + RLS) |
-| AI | Anthropic Claude (AI SDK) |
+| AI | Google Gemini (채팅) + Anthropic Claude (분석) via AI SDK |
 | Chart | Recharts |
 | Deploy | Vercel |
 
@@ -107,7 +112,8 @@
 - Node.js 18+
 - npm
 - Supabase 프로젝트 (무료 플랜 가능)
-- Anthropic API Key (AI 코치 기능용)
+- Google AI API Key (AI 코치 기능용)
+- Anthropic API Key (AI 분석 기능용)
 
 ### 설치 및 실행
 
@@ -131,6 +137,7 @@ cp .env.local.example .env.local
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+GOOGLE_GENERATIVE_AI_API_KEY=your-google-ai-api-key-here
 ANTHROPIC_API_KEY=your-anthropic-api-key-here
 ```
 
@@ -161,8 +168,8 @@ npm run start
 src/
 ├── app/
 │   ├── (auth)/           # 로그인, 회원가입, 온보딩, ISI 진단
-│   ├── (main)/           # 홈, 일지, 미션, 세션, 이완, 코치, 리포트, 설정
-│   ├── api/              # API 라우트 (AI 챗)
+│   ├── (main)/           # 홈, 일지, 미션, 세션, 이완, AI코치, 리포트, 설정
+│   ├── api/              # API 라우트 (AI 채팅, AI 분석)
 │   ├── auth/             # OAuth 콜백
 │   ├── globals.css       # 다크 테마 스타일
 │   ├── layout.tsx        # 루트 레이아웃

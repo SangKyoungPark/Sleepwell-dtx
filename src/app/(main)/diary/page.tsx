@@ -82,20 +82,36 @@ export default function DiaryPage() {
         }
       } else {
         // localStorage 폴백
-        const existing: Record<string, unknown>[] = JSON.parse(localStorage.getItem("sleepDiary") || "[]");
+        let existing: Record<string, unknown>[] = [];
+        try { existing = JSON.parse(localStorage.getItem("sleepDiary") || "[]"); } catch { /* ignore */ }
         todayEntry = existing.find((e) => e.date === today) || null;
       }
 
-      if (todayEntry && todayEntry.stressLevel != null) {
-        setStressLevel(todayEntry.stressLevel as number);
-        setCaffeine(todayEntry.caffeine as boolean);
-        if (todayEntry.caffeineLastTime) setCaffeineLastTime(todayEntry.caffeineLastTime as string);
-        setExercise(todayEntry.exercise as boolean);
-        if (todayEntry.exerciseType) setExerciseType(todayEntry.exerciseType as string);
-        setNap(todayEntry.nap as boolean);
-        if (todayEntry.napDuration) setNapDuration(todayEntry.napDuration as number);
-        if (todayEntry.worryNote) setWorryNote(todayEntry.worryNote as string);
-        setEveningSaved(true);
+      if (todayEntry) {
+        // 아침 기록 복원
+        if (todayEntry.bedtime) setBedtime(todayEntry.bedtime as string);
+        if (todayEntry.wakeTime) setWakeTime(todayEntry.wakeTime as string);
+        if (todayEntry.sleepOnsetLatency != null) setSleepOnsetLatency(todayEntry.sleepOnsetLatency as number);
+        if (todayEntry.awakenings != null) setAwakenings(todayEntry.awakenings as number);
+        if (todayEntry.waso != null) setWaso(todayEntry.waso as number);
+        if (todayEntry.sleepQuality != null) setSleepQuality(todayEntry.sleepQuality as number);
+        if (todayEntry.morningMood) {
+          setMorningMood(todayEntry.morningMood as MorningMood);
+          setMorningSaved(true);
+        }
+
+        // 저녁 기록 복원
+        if (todayEntry.stressLevel != null) {
+          setStressLevel(todayEntry.stressLevel as number);
+          setCaffeine(todayEntry.caffeine as boolean);
+          if (todayEntry.caffeineLastTime) setCaffeineLastTime(todayEntry.caffeineLastTime as string);
+          setExercise(todayEntry.exercise as boolean);
+          if (todayEntry.exerciseType) setExerciseType(todayEntry.exerciseType as string);
+          setNap(todayEntry.nap as boolean);
+          if (todayEntry.napDuration) setNapDuration(todayEntry.napDuration as number);
+          if (todayEntry.worryNote) setWorryNote(todayEntry.worryNote as string);
+          setEveningSaved(true);
+        }
       }
     }
     loadTodayEntry();
@@ -130,13 +146,12 @@ export default function DiaryPage() {
         sleepEfficiency,
       };
 
-      saveToLocalStorage(entry);
-
       if (user) {
         const { error } = await saveDiaryEntry(user.id, today, diaryToDb(entry));
         if (error) { showError("저장 중 오류가 발생했습니다"); return; }
       }
 
+      saveToLocalStorage(entry);
       success("아침 기록이 저장되었습니다");
       setMorningSaved(true);
     } finally {
@@ -160,13 +175,12 @@ export default function DiaryPage() {
         worryNote: worryNote.trim() || undefined,
       };
 
-      saveToLocalStorage(eveningData);
-
       if (user) {
         const { error } = await saveDiaryEntry(user.id, today, diaryToDb(eveningData));
         if (error) { showError("저장 중 오류가 발생했습니다"); return; }
       }
 
+      saveToLocalStorage(eveningData);
       success("저녁 기록이 저장되었습니다");
       setEveningSaved(true);
     } finally {

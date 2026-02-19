@@ -153,6 +153,8 @@ export default function CoachPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "알 수 없는 오류");
+      // 스트리밍 중 에러 시 빈 assistant 메시지 제거
+      setMessages((prev) => prev.filter((m) => m.text !== ""));
     } finally {
       setIsLoading(false);
     }

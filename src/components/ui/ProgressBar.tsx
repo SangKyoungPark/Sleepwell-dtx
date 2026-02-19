@@ -9,7 +9,7 @@ interface ProgressBarProps {
 }
 
 export function ProgressBar({ current, total, className }: ProgressBarProps) {
-  const percentage = Math.round((current / total) * 100);
+  const percentage = total === 0 ? 0 : Math.round((current / total) * 100);
 
   return (
     <div className={cn("w-full", className)}>

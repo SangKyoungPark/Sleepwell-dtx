@@ -16,7 +16,6 @@ export default function AssessmentPage() {
 
   const isLastQuestion = currentQuestion === ISI_QUESTIONS.length - 1;
   const currentScore = scores[currentQuestion];
-  const allAnswered = scores.every((s) => s !== null);
 
   function handleSelect(value: number) {
     const newScores = [...scores];

@@ -47,8 +47,10 @@ export default function MissionPage() {
           localStorage.setItem("missionLog", JSON.stringify(data));
         }
       } else {
-        const saved = JSON.parse(localStorage.getItem("missionLog") || "{}");
-        setCompletedMissions(saved);
+        try {
+          const saved = JSON.parse(localStorage.getItem("missionLog") || "{}");
+          setCompletedMissions(saved);
+        } catch { /* ignore */ }
       }
       setLoading(false);
     }
@@ -121,7 +123,7 @@ export default function MissionPage() {
         <div className="w-full h-2 bg-[var(--color-surface-light)] rounded-full mt-3 overflow-hidden">
           <div
             className="h-full bg-[var(--color-primary)] rounded-full transition-all duration-500"
-            style={{ width: `${(completedCount / weekMissions.length) * 100}%` }}
+            style={{ width: `${weekMissions.length === 0 ? 0 : (completedCount / weekMissions.length) * 100}%` }}
           />
         </div>
       </div>

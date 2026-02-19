@@ -31,7 +31,14 @@ export async function POST(req: Request) {
     );
   }
 
-  const { sleepData } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return Response.json({ error: "잘못된 요청 형식입니다." }, { status: 400 });
+  }
+
+  const { sleepData } = body;
 
   if (!sleepData || sleepData === "수면 기록이 없습니다.") {
     return Response.json(
@@ -40,18 +47,19 @@ export async function POST(req: Request) {
     );
   }
 
-  const { text } = await generateText({
-    model: anthropic("claude-sonnet-4-5-20250929"),
-    system: SYSTEM_PROMPT,
-    prompt: `다음 수면 데이터를 분석해주세요:\n\n${sleepData}`,
-  });
-
   try {
+    const { text } = await generateText({
+      model: anthropic("claude-sonnet-4-5-20250929"),
+      system: SYSTEM_PROMPT,
+      prompt: `다음 수면 데이터를 분석해주세요:\n\n${sleepData}`,
+    });
+
     const analysis = JSON.parse(text);
     return Response.json(analysis);
-  } catch {
+  } catch (err) {
+    console.error("[AI Analyze]", err);
     return Response.json(
-      { error: "분석 결과 파싱에 실패했습니다.", raw: text },
+      { error: "AI 분석에 실패했습니다. 잠시 후 다시 시도해주세요." },
       { status: 500 },
     );
   }

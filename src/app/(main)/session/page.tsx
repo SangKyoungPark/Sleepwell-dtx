@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { SESSIONS, type SessionContent } from "@/lib/sessions";
-import { PROGRAM_WEEKS } from "@/lib/constants";
 import { useAuth } from "@/hooks/useAuth";
 import {
   saveSessionProgress as saveSessionProgressDb,
@@ -42,12 +41,18 @@ export default function SessionPage() {
         }
       }
       // localStorage 폴백
-      const saved = JSON.parse(localStorage.getItem("sessionProgress") || "{}");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let saved: any = {};
+      try { saved = JSON.parse(localStorage.getItem("sessionProgress") || "{}"); } catch { /* ignore */ }
       if (saved.completedSections) setCompletedSections(saved.completedSections);
       if (saved.practiceChecks) setPracticeChecks(saved.practiceChecks);
       if (saved.reflectionText) setReflectionText(saved.reflectionText);
     }
     loadProgress().finally(() => setLoading(false));
+
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
   }, [user]);
 
   function saveProgress(
