@@ -36,32 +36,40 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, sleepContext } = await req.json();
+  try {
+    const { messages, sleepContext } = await req.json();
 
-  // 수면 데이터 컨텍스트를 시스템 프롬프트에 추가
-  let contextPrompt = SYSTEM_PROMPT;
-  if (sleepContext) {
-    contextPrompt += `\n\n## 사용자의 최근 수면 데이터\n${sleepContext}`;
+    // 수면 데이터 컨텍스트를 시스템 프롬프트에 추가
+    let contextPrompt = SYSTEM_PROMPT;
+    if (sleepContext) {
+      contextPrompt += `\n\n## 사용자의 최근 수면 데이터\n${sleepContext}`;
+    }
+
+    // 메시지 형식 통일
+    const convertedMessages = messages.map(
+      (msg: { role: string; parts?: { type: string; text: string }[]; content?: string }) => ({
+        role: msg.role,
+        content: msg.parts
+          ? msg.parts
+              .filter((p: { type: string }) => p.type === "text")
+              .map((p: { text: string }) => p.text)
+              .join("")
+          : msg.content || "",
+      }),
+    );
+
+    const result = streamText({
+      model: google("gemini-2.0-flash"),
+      system: contextPrompt,
+      messages: convertedMessages,
+    });
+
+    return result.toTextStreamResponse();
+  } catch (err) {
+    console.error("[AI Chat] Error:", err);
+    return new Response(
+      JSON.stringify({ error: err instanceof Error ? err.message : "AI 응답 생성 중 오류가 발생했습니다." }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
   }
-
-  // 메시지 형식 통일
-  const convertedMessages = messages.map(
-    (msg: { role: string; parts?: { type: string; text: string }[]; content?: string }) => ({
-      role: msg.role,
-      content: msg.parts
-        ? msg.parts
-            .filter((p) => p.type === "text")
-            .map((p) => p.text)
-            .join("")
-        : msg.content || "",
-    }),
-  );
-
-  const result = streamText({
-    model: google("gemini-2.0-flash"),
-    system: contextPrompt,
-    messages: convertedMessages,
-  });
-
-  return result.toTextStreamResponse();
 }
