@@ -29,6 +29,8 @@ export default function SettingsPage() {
     currentWeek: 1,
   });
   const [showReset, setShowReset] = useState(false);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [diaryCount, setDiaryCount] = useState(0);
   const [missionCount, setMissionCount] = useState(0);
 
@@ -285,21 +287,75 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* 로그아웃 (로그인 사용자만) */}
+        {/* 로그아웃 / 회원탈퇴 (로그인 사용자만) */}
         {user && (
-          <button
-            onClick={async () => {
-              const supabase = createClient();
-              if (supabase) {
-                await supabase.auth.signOut();
-              }
-              router.push("/login");
-              router.refresh();
-            }}
-            className="w-full py-3 rounded-2xl text-sm font-medium bg-[var(--color-surface)] text-[var(--color-muted)] cursor-pointer hover:text-white transition-colors"
-          >
-            로그아웃
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={async () => {
+                const supabase = createClient();
+                if (supabase) {
+                  await supabase.auth.signOut();
+                }
+                router.push("/login");
+                router.refresh();
+              }}
+              className="w-full py-3 rounded-2xl text-sm font-medium bg-[var(--color-surface)] text-[var(--color-muted)] cursor-pointer hover:text-white transition-colors"
+            >
+              로그아웃
+            </button>
+
+            {!showDeleteAccount ? (
+              <button
+                onClick={() => setShowDeleteAccount(true)}
+                className="w-full py-3 rounded-2xl text-sm font-medium bg-red-500/10 text-red-400 cursor-pointer hover:bg-red-500/20 transition-colors"
+              >
+                회원탈퇴
+              </button>
+            ) : (
+              <div className="bg-red-500/10 rounded-2xl p-4">
+                <p className="text-sm text-red-400 font-medium mb-2">
+                  정말 탈퇴하시겠습니까?
+                </p>
+                <p className="text-xs text-[var(--color-muted)] mb-3">
+                  계정과 모든 데이터(수면 일지, 미션 기록, 세션, 채팅 등)가 영구 삭제됩니다.
+                  이 작업은 되돌릴 수 없습니다.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setShowDeleteAccount(false)}
+                  >
+                    취소
+                  </Button>
+                  <button
+                    onClick={async () => {
+                      setDeletingAccount(true);
+                      try {
+                        const res = await fetch("/api/user/delete", { method: "POST" });
+                        if (!res.ok) {
+                          const body = await res.json();
+                          alert(body.error || "회원탈퇴에 실패했습니다.");
+                          return;
+                        }
+                        localStorage.clear();
+                        router.push("/");
+                        router.refresh();
+                      } catch {
+                        alert("회원탈퇴 중 오류가 발생했습니다.");
+                      } finally {
+                        setDeletingAccount(false);
+                      }
+                    }}
+                    disabled={deletingAccount}
+                    className="flex-1 py-2 rounded-xl text-sm font-medium bg-red-500 text-white cursor-pointer disabled:opacity-50"
+                  >
+                    {deletingAccount ? "처리 중..." : "탈퇴 확인"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* 앱 정보 */}
