@@ -2,14 +2,15 @@ import { NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const DATA_TABLES = [
-  "chat_messages",
-  "sleep_diary",
-  "mission_logs",
-  "session_progress",
-  "assessments",
-  "profiles",
-] as const;
+// profiles는 user_id가 아닌 id 컬럼 사용
+const DATA_TABLES: { table: string; column: string }[] = [
+  { table: "chat_messages", column: "user_id" },
+  { table: "sleep_diary", column: "user_id" },
+  { table: "mission_logs", column: "user_id" },
+  { table: "session_progress", column: "user_id" },
+  { table: "assessments", column: "user_id" },
+  { table: "profiles", column: "id" },
+];
 
 export async function POST() {
   // 1. 현재 로그인 사용자 확인
@@ -41,8 +42,8 @@ export async function POST() {
   }
 
   // 3. 사용자 데이터 삭제 (데이터 테이블 → profiles → auth)
-  for (const table of DATA_TABLES) {
-    const { error } = await admin.from(table).delete().eq("user_id", user.id);
+  for (const { table, column } of DATA_TABLES) {
+    const { error } = await admin.from(table).delete().eq(column, user.id);
     if (error) {
       console.error(`[회원탈퇴] ${table} 삭제 실패:`, error.message);
       return NextResponse.json(
