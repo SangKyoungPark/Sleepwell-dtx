@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { SleepyCharacter, StarsBackground } from "@/components/ui/SleepIllustrations";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -60,11 +61,14 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-6 max-w-md mx-auto">
-      <div className="w-full">
+    <main className="min-h-screen flex flex-col items-center justify-center p-6 max-w-md mx-auto relative overflow-hidden">
+      <StarsBackground />
+      <div className="w-full relative z-10">
         {/* 로고 */}
         <div className="text-center mb-8">
-          <p className="text-5xl mb-4">🌙</p>
+          <div className="flex justify-center mb-2">
+            <SleepyCharacter size={72} />
+          </div>
           <h1 className="text-3xl font-bold">
             Sleep<span className="text-[var(--color-primary-light)]">Well</span>
           </h1>

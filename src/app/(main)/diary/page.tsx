@@ -19,6 +19,7 @@ import { saveDiaryEntry, getDiaryEntries, diaryToDb, dbToDiary } from "@/lib/sup
 import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/ui/Toast";
 import type { MorningMood } from "@/types";
+import { HeaderStars } from "@/components/ui/SleepIllustrations";
 
 type DiaryTab = "morning" | "evening";
 
@@ -279,8 +280,11 @@ export default function DiaryPage() {
       <ToastContainer toasts={toasts} onClose={close} />
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-xl font-bold mb-1">수면 일지</h1>
-        <p className="text-sm text-[var(--color-muted)]">
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-bold">수면 일지</h1>
+          <HeaderStars />
+        </div>
+        <p className="text-sm text-[var(--color-muted)] mt-1">
           {today}
         </p>
       </div>

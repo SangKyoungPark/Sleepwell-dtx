@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { BreathingExercise } from "@/components/relax/BreathingExercise";
 import { PMRExercise } from "@/components/relax/PMRExercise";
 import { BodyScanExercise } from "@/components/relax/BodyScanExercise";
+import { CloudDecoration } from "@/components/ui/SleepIllustrations";
 
 type Tool = "menu" | "breathing" | "pmr" | "bodyscan";
 
@@ -66,10 +67,15 @@ export default function RelaxPage() {
     <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-xl font-bold mb-1">이완 도구</h1>
-        <p className="text-sm text-[var(--color-muted)]">
-          취침 전 긴장을 풀어주는 도구들
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold mb-1">이완 도구</h1>
+            <p className="text-sm text-[var(--color-muted)]">
+              취침 전 긴장을 풀어주는 도구들
+            </p>
+          </div>
+          <CloudDecoration className="opacity-50 -mr-4" />
+        </div>
       </div>
 
       {/* 도구 목록 */}

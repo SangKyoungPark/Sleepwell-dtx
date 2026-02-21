@@ -10,6 +10,7 @@ import { getProfile, updateProfile, getDiaryEntries, getMissionLogs } from "@/li
 import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/ui/Toast";
 import { PageSkeleton } from "@/components/ui/Skeleton";
+import { HeaderStars } from "@/components/ui/SleepIllustrations";
 
 interface UserProfile {
   name: string;
@@ -140,8 +141,11 @@ export default function SettingsPage() {
       <ToastContainer toasts={toasts} onClose={close} />
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-xl font-bold mb-1">설정</h1>
-        <p className="text-sm text-[var(--color-muted)]">
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-bold">설정</h1>
+          <HeaderStars />
+        </div>
+        <p className="text-sm text-[var(--color-muted)] mt-1">
           프로필 및 앱 설정
         </p>
       </div>

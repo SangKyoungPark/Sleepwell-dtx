@@ -9,6 +9,7 @@ import {
   ResponsiveContainer, ScatterChart, Scatter, Cell,
   BarChart, Bar,
 } from "recharts";
+import { HeaderStars } from "@/components/ui/SleepIllustrations";
 
 interface DiaryEntry {
   date: string;
@@ -188,8 +189,12 @@ export default function ReportPage() {
     <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20 animate-fade-in">
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-xl font-bold mb-1">나의 리포트</h1>
-        <p className="text-sm text-[var(--color-muted)]">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">📊</span>
+          <h1 className="text-xl font-bold">나의 리포트</h1>
+          <HeaderStars />
+        </div>
+        <p className="text-sm text-[var(--color-muted)] mt-1">
           {entries.length}일간의 수면 데이터
         </p>
       </div>

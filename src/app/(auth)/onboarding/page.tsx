@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { MoonIllustration, StarsBackground } from "@/components/ui/SleepIllustrations";
 
 const SLIDES = [
   {
     emoji: "🌙",
+    useMoon: true,
     title: "잠 못 드는 밤,\n이제 끝내볼까요?",
     description:
       "SleepWell은 인지행동치료(CBT-I)에 기반한\n6주 불면증 자가관리 프로그램입니다.",
@@ -28,6 +30,7 @@ const SLIDES = [
   },
   {
     emoji: "✨",
+    useStars: true,
     title: "6주 후,\n달라진 나를 만나세요",
     description:
       "먼저 간단한 자가진단(ISI)으로\n현재 수면 상태를 확인해볼까요?",
@@ -75,8 +78,15 @@ export default function OnboardingPage() {
       </div>
 
       {/* 콘텐츠 */}
-      <div className="flex-1 flex flex-col items-center justify-center text-center">
-        <p className="text-7xl mb-8">{slide.emoji}</p>
+      <div className="flex-1 flex flex-col items-center justify-center text-center relative">
+        {slide.useStars && <StarsBackground />}
+        {slide.useMoon ? (
+          <div className="mb-4">
+            <MoonIllustration size={100} />
+          </div>
+        ) : (
+          <p className="text-7xl mb-8">{slide.emoji}</p>
+        )}
         <h1 className="text-2xl font-bold leading-snug whitespace-pre-line mb-4">
           {slide.title}
         </h1>

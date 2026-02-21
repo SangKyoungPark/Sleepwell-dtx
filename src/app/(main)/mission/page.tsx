@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/ui/Toast";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import type { Mission } from "@/types";
+import { HeaderStars } from "@/components/ui/SleepIllustrations";
 
 const CATEGORY_LABEL: Record<string, string> = {
   hygiene: "수면 위생",
@@ -81,8 +82,12 @@ export default function MissionPage() {
       <ToastContainer toasts={toasts} onClose={close} />
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-xl font-bold mb-1">오늘의 미션</h1>
-        <p className="text-sm text-[var(--color-muted)]">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🎯</span>
+          <h1 className="text-xl font-bold">오늘의 미션</h1>
+          <HeaderStars />
+        </div>
+        <p className="text-sm text-[var(--color-muted)] mt-1">
           매일 하나씩, 작은 변화가 쌓여요
         </p>
       </div>

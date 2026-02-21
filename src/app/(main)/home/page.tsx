@@ -8,6 +8,7 @@ import { getMission } from "@/lib/missions";
 import { useAuth } from "@/hooks/useAuth";
 import { getDiaryEntries, dbToDiary } from "@/lib/supabase/db";
 import { PageSkeleton } from "@/components/ui/Skeleton";
+import { HeaderStars } from "@/components/ui/SleepIllustrations";
 
 interface DiaryEntry {
   date: string;
@@ -75,12 +76,27 @@ export default function HomePage() {
   const weekInfo = PROGRAM_WEEKS[currentWeek - 1];
   const todayMission = getMission(currentWeek, currentDay);
 
+  function getGreeting(): { emoji: string; text: string } {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return { emoji: "🌅", text: "좋은 아침이에요" };
+    if (hour >= 12 && hour < 18) return { emoji: "☀️", text: "좋은 오후에요" };
+    if (hour >= 18 && hour < 22) return { emoji: "🌇", text: "편안한 저녁이에요" };
+    return { emoji: "🌙", text: "오늘 밤도 함께해요" };
+  }
+
   if (loading) return <PageSkeleton cards={4} />;
+
+  const greeting = getGreeting();
 
   return (
     <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20 animate-fade-in">
       {/* Header */}
       <div className="mb-6">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xl">{greeting.emoji}</span>
+          <span className="text-sm text-[var(--color-muted)]">{greeting.text}</span>
+          <HeaderStars className="ml-auto" />
+        </div>
         <h1 className="text-2xl font-bold">
           Sleep<span className="text-[var(--color-primary-light)]">Well</span>
         </h1>

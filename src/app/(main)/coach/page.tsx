@@ -11,6 +11,7 @@ import {
 import { dbToDiary } from "@/lib/supabase/db";
 import MarkdownText from "@/components/ui/MarkdownText";
 import type { ChatMessage } from "@/types";
+import { CoachCharacter } from "@/components/ui/SleepIllustrations";
 
 // ── 수면 데이터 컨텍스트 빌드 ──
 
@@ -342,7 +343,7 @@ export default function CoachPage() {
       {/* 헤더 */}
       <div className="sticky top-0 z-10 bg-[var(--color-background)] border-b border-[var(--color-surface-light)] px-6 py-4">
         <div className="flex items-center gap-3">
-          <span className="text-2xl">🤖</span>
+          <CoachCharacter size={40} />
           <div>
             <h1 className="text-lg font-bold">AI 수면 코치</h1>
             <p className="text-xs text-[var(--color-muted)]">

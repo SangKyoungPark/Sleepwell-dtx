@@ -9,6 +9,7 @@ import {
   getSessionProgress,
 } from "@/lib/supabase/db";
 import { PageSkeleton } from "@/components/ui/Skeleton";
+import { HeaderStars } from "@/components/ui/SleepIllustrations";
 
 type View = "list" | "detail";
 
@@ -128,8 +129,12 @@ export default function SessionPage() {
     return (
       <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20 animate-fade-in">
         <div className="mb-6">
-          <h1 className="text-xl font-bold mb-1">CBT-I 주간 세션</h1>
-          <p className="text-sm text-[var(--color-muted)]">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">📖</span>
+            <h1 className="text-xl font-bold">CBT-I 주간 세션</h1>
+            <HeaderStars />
+          </div>
+          <p className="text-sm text-[var(--color-muted)] mt-1">
             6주간의 인지행동치료 교육 프로그램
           </p>
         </div>
