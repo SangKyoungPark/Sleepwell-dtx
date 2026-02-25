@@ -25,9 +25,9 @@ export function SoundMiniPlayer() {
 					className="bg-[var(--color-primary)]/20 backdrop-blur-md border border-[var(--color-primary)]/30 rounded-xl px-4 py-2.5 flex items-center justify-between cursor-pointer shadow-lg"
 				>
 					<div className="flex items-center gap-2 min-w-0">
-						<span className="text-lg animate-pulse">{"\uD83C\uDFB5"}</span>
+						<span className="text-lg animate-pulse">🎵</span>
 						<span className="text-sm font-medium truncate">
-							{"\uC218\uBA74 \uC0AC\uC6B4\uB4DC \uC7AC\uC0DD \uC911"}
+							수면 사운드 재생 중
 						</span>
 						{timerRemaining !== null && (
 							<span className="text-xs text-[var(--color-muted)] ml-1">
@@ -42,7 +42,7 @@ export function SoundMiniPlayer() {
 						}}
 						className="ml-2 px-2.5 py-1 rounded-lg bg-red-500/20 text-red-400 text-xs font-semibold cursor-pointer hover:bg-red-500/30 transition-colors"
 					>
-						{"\uC815\uC9C0"}
+						정지
 					</button>
 				</div>
 			</div>
