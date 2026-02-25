@@ -20,6 +20,7 @@ interface SoundContextValue {
 	setMasterVolume: (volume: number) => void;
 	setTimer: (minutes: number | null) => void;
 	stopAll: () => void;
+	playPreset: () => void;
 }
 
 const DEFAULT_STATE: EngineState = {
@@ -123,6 +124,15 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 		engineRef.current?.StopAll();
 	}, []);
 
+	const playPreset = useCallback(() => {
+		const engine = engineRef.current;
+		if (!engine) return;
+		engine.StopAll();
+		engine.ToggleSound("rain");
+		engine.ToggleSound("brown");
+		engine.SetTimer(45);
+	}, []);
+
 	const isAnyPlaying = Object.values(state.sounds).some((s) => s.playing);
 
 	return (
@@ -136,6 +146,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 				setMasterVolume,
 				setTimer,
 				stopAll,
+				playPreset,
 			}}
 		>
 			{children}

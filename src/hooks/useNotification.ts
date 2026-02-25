@@ -93,6 +93,8 @@ function getReminderUrl(type: ReminderType): string {
 export interface UseNotificationReturn {
 	supported: boolean;
 	settings: NotificationSettings;
+	bedtimePromptVisible: boolean;
+	dismissBedtimePrompt: () => void;
 	requestPermission: () => Promise<NotificationPermission>;
 	toggleGlobal: (enabled: boolean) => Promise<void>;
 	toggleReminder: (type: ReminderType, enabled: boolean) => void;
@@ -102,6 +104,7 @@ export interface UseNotificationReturn {
 export function useNotification(): UseNotificationReturn {
 	const supported = isNotificationSupported();
 	const [settings, setSettings] = useState<NotificationSettings>(loadSettings);
+	const [bedtimePromptVisible, setBedtimePromptVisible] = useState(false);
 	const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
 	// 설정 변경 시 저장
@@ -133,6 +136,11 @@ export function useNotification(): UseNotificationReturn {
 
 				// 발송
 				fireNotification("SleepWell", reminder.message, getReminderUrl(reminder.type));
+
+				// 취침 리마인더일 때 인앱 프롬프트 표시
+				if (reminder.type === "bedtime") {
+					setBedtimePromptVisible(true);
+				}
 
 				// 중복 방지 기록
 				lastFired[firedKey] = new Date().toISOString();
@@ -178,6 +186,11 @@ export function useNotification(): UseNotificationReturn {
 		}
 	}, [requestPermission]);
 
+	// --- 취침 프롬프트 닫기 ---
+	const dismissBedtimePrompt = useCallback(() => {
+		setBedtimePromptVisible(false);
+	}, []);
+
 	// --- 개별 리마인더 토글 ---
 	const toggleReminder = useCallback((type: ReminderType, enabled: boolean) => {
 		setSettings((prev) => ({
@@ -201,6 +214,8 @@ export function useNotification(): UseNotificationReturn {
 	return {
 		supported,
 		settings,
+		bedtimePromptVisible,
+		dismissBedtimePrompt,
 		requestPermission,
 		toggleGlobal,
 		toggleReminder,
