@@ -99,6 +99,9 @@ export default function HomePage() {
           <span className="text-xl">{greeting.emoji}</span>
           <span className="text-sm text-[var(--color-muted)]">{greeting.text}</span>
           <HeaderStars className="ml-auto" />
+          <Link href="/settings" className="text-xl ml-1 hover:opacity-70 transition-opacity">
+            ⚙️
+          </Link>
         </div>
         <h1 className="text-2xl font-bold">
           Sleep<span className="text-[var(--color-primary-light)]">Well</span>
