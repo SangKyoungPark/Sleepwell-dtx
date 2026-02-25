@@ -5,39 +5,56 @@ import { cn } from "@/lib/utils";
 import { BreathingExercise } from "@/components/relax/BreathingExercise";
 import { PMRExercise } from "@/components/relax/PMRExercise";
 import { BodyScanExercise } from "@/components/relax/BodyScanExercise";
+import { SleepSoundMixer } from "@/components/relax/SleepSoundMixer";
 import { CloudDecoration } from "@/components/ui/SleepIllustrations";
 
-type Tool = "menu" | "breathing" | "pmr" | "bodyscan";
+type Tool = "menu" | "breathing" | "pmr" | "bodyscan" | "sound";
 
 const TOOLS = [
   {
+    id: "sound" as Tool,
+    emoji: "\uD83C\uDFB5",
+    title: "\uC218\uBA74 \uC0AC\uC6B4\uB4DC",
+    description: "\uBC31\uC0C9\uC18C\uC74C \xB7 \uBE57\uC18C\uB9AC \xB7 \uD30C\uB3C4 \uB4F1 8\uC885 \uBF40\uC2F1",
+    duration: "\uC790\uC720 \uC124\uC815",
+    color: "bg-indigo-500/10 border-indigo-500/20",
+  },
+  {
     id: "breathing" as Tool,
-    emoji: "🫁",
-    title: "4-7-8 호흡법",
-    description: "4초 들숨 · 7초 참기 · 8초 날숨",
-    duration: "약 2분",
+    emoji: "\uD83E\uDEC1",
+    title: "4-7-8 \uD638\uD761\uBC95",
+    description: "4\uCD08 \uB4E4\uC228 \xB7 7\uCD08 \uCC38\uAE30 \xB7 8\uCD08 \uB0A0\uC228",
+    duration: "\uC57D 2\uBD84",
     color: "bg-blue-500/10 border-blue-500/20",
   },
   {
     id: "pmr" as Tool,
-    emoji: "💪",
-    title: "점진적 근이완법",
-    description: "발부터 머리까지 긴장-이완 반복",
-    duration: "약 3분",
+    emoji: "\uD83D\uDCAA",
+    title: "\uC810\uC9C4\uC801 \uADFC\uC774\uC644\uBC95",
+    description: "\uBC1C\uBD80\uD130 \uBA38\uB9AC\uAE4C\uC9C0 \uAE34\uC7A5-\uC774\uC644 \uBC18\uBCF5",
+    duration: "\uC57D 3\uBD84",
     color: "bg-red-500/10 border-red-500/20",
   },
   {
     id: "bodyscan" as Tool,
-    emoji: "🧘‍♂️",
-    title: "바디스캔 명상",
-    description: "몸 전체를 천천히 관찰하는 명상",
-    duration: "약 5분",
+    emoji: "\uD83E\uDDD8\u200D\u2642\uFE0F",
+    title: "\uBC14\uB514\uC2A4\uCE94 \uBA85\uC0C1",
+    description: "\uBAB8 \uC804\uCCB4\uB97C \uCC9C\uCC9C\uD788 \uAD00\uCC30\uD558\uB294 \uBA85\uC0C1",
+    duration: "\uC57D 5\uBD84",
     color: "bg-purple-500/10 border-purple-500/20",
   },
 ];
 
 export default function RelaxPage() {
   const [activeTool, setActiveTool] = useState<Tool>("menu");
+
+  if (activeTool === "sound") {
+    return (
+      <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-20">
+        <SleepSoundMixer onBack={() => setActiveTool("menu")} />
+      </main>
+    );
+  }
 
   if (activeTool === "breathing") {
     return (
