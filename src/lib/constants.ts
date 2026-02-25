@@ -57,3 +57,33 @@ export const PROGRAM_WEEKS = [
   { week: 5, title: "수면 제한", theme: "수면효율 높이기" },
   { week: 6, title: "유지 & 재발 방지", theme: "장기 전략" },
 ] as const;
+
+// --- Notification / Reminder ---
+import type { ReminderConfig } from "@/types";
+
+export const DEFAULT_REMINDERS: ReminderConfig[] = [
+  {
+    type: "bedtime",
+    enabled: true,
+    time: "22:30",
+    label: "취침 리마인더",
+    message: "곧 취침 시간이에요. 오늘도 편안한 밤 되세요 🌙",
+  },
+  {
+    type: "morningDiary",
+    enabled: true,
+    time: "08:00",
+    label: "아침 수면일지",
+    message: "어젯밤 수면은 어땠나요? 수면일지를 기록해 보세요 📝",
+  },
+  {
+    type: "eveningDiary",
+    enabled: false,
+    time: "20:00",
+    label: "저녁 기록",
+    message: "오늘 하루의 컨디션을 기록해 볼까요?",
+  },
+];
+
+export const NOTIFICATION_STORAGE_KEY = "sleepwell-notification-settings";
+export const NOTIFICATION_LAST_FIRED_KEY = "sleepwell-notification-last-fired";

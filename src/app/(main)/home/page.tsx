@@ -9,6 +9,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { getDiaryEntries, dbToDiary } from "@/lib/supabase/db";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import { HeaderStars } from "@/components/ui/SleepIllustrations";
+import { NotificationBanner } from "@/components/ui/NotificationBanner";
+import { useNotification } from "@/hooks/useNotification";
 
 interface DiaryEntry {
   date: string;
@@ -33,6 +35,7 @@ export default function HomePage() {
   const [currentDay, setCurrentDay] = useState(1);
   const [missionDone, setMissionDone] = useState(false);
   const [loading, setLoading] = useState(true);
+  const notification = useNotification();
 
   useEffect(() => {
     async function loadData() {
@@ -104,6 +107,13 @@ export default function HomePage() {
           {currentWeek}주차 · {weekInfo.theme}
         </p>
       </div>
+
+      {/* 알림 유도 배너 */}
+      {notification.supported && notification.settings.permissionStatus === "default" && (
+        <section className="mb-4">
+          <NotificationBanner onEnable={() => notification.toggleGlobal(true)} />
+        </section>
+      )}
 
       {/* 어젯밤 수면 요약 */}
       <section className="mb-6 animate-slide-up">

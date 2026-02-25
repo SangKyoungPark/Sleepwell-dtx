@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { PWAProvider } from "@/components/PWAProvider";
 
 export const metadata: Metadata = {
   title: "SleepWell - 불면증 CBT-I 자가관리",
@@ -26,7 +27,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        {children}
+        <PWAProvider />
+      </body>
     </html>
   );
 }

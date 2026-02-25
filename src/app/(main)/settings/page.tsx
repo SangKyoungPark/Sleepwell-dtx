@@ -11,6 +11,8 @@ import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/ui/Toast";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import { HeaderStars } from "@/components/ui/SleepIllustrations";
+import { Toggle } from "@/components/ui/Toggle";
+import { useNotification } from "@/hooks/useNotification";
 
 interface UserProfile {
   name: string;
@@ -33,6 +35,7 @@ export default function SettingsPage() {
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [diaryCount, setDiaryCount] = useState(0);
   const [missionCount, setMissionCount] = useState(0);
+  const notification = useNotification();
 
   useEffect(() => {
     async function loadSettings() {
@@ -201,6 +204,59 @@ export default function SettingsPage() {
               프로필 저장
             </Button>
           </div>
+        </div>
+
+        {/* 알림 설정 */}
+        <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+          <h3 className="text-sm font-semibold text-[var(--color-muted)] mb-4">
+            알림 설정
+          </h3>
+          {!notification.supported ? (
+            <p className="text-xs text-[var(--color-muted)]">
+              이 브라우저는 알림을 지원하지 않습니다.
+            </p>
+          ) : notification.settings.permissionStatus === "denied" ? (
+            <div className="space-y-2">
+              <p className="text-xs text-red-400">
+                알림 권한이 차단되었습니다.
+              </p>
+              <p className="text-xs text-[var(--color-muted)]">
+                브라우저 설정에서 이 사이트의 알림을 허용해 주세요.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <Toggle
+                label="알림 받기"
+                description="리마인더 알림을 켜거나 끕니다"
+                checked={notification.settings.globalEnabled}
+                onChange={(checked) => notification.toggleGlobal(checked)}
+              />
+              {notification.settings.globalEnabled && (
+                <div className="space-y-3 pt-2 border-t border-[var(--color-surface-light)]">
+                  {notification.settings.reminders.map((reminder) => (
+                    <div key={reminder.type} className="space-y-2">
+                      <Toggle
+                        label={reminder.label}
+                        checked={reminder.enabled}
+                        onChange={(checked) => notification.toggleReminder(reminder.type, checked)}
+                      />
+                      {reminder.enabled && (
+                        <div className="pl-2">
+                          <input
+                            type="time"
+                            value={reminder.time}
+                            onChange={(e) => notification.updateReminderTime(reminder.type, e.target.value)}
+                            className="bg-[var(--color-background)] rounded-xl px-3 py-2 text-sm outline-none border border-[var(--color-surface-light)] focus:border-[var(--color-primary)] transition-colors"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 계정 정보 (로그인 시) */}

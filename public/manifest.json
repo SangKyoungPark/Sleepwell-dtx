@@ -2,17 +2,45 @@
   "name": "SleepWell DTx",
   "short_name": "SleepWell",
   "description": "CBT-I 기반 불면증 자가관리 프로그램",
-  "start_url": "/",
+  "start_url": "/home",
   "display": "standalone",
   "background_color": "#0a0e1a",
   "theme_color": "#0a0e1a",
   "orientation": "portrait",
+  "lang": "ko",
+  "categories": ["health", "medical", "lifestyle"],
   "icons": [
     {
       "src": "/icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "수면 일지",
+      "short_name": "일지",
+      "url": "/diary",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "AI 코치",
+      "short_name": "코치",
+      "url": "/coach",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "이완 도구",
+      "short_name": "이완",
+      "url": "/relax",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
     }
   ]
 }

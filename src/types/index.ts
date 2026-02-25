@@ -141,3 +141,20 @@ export interface CorrelationData {
   sleepQuality: number;
   date: string;
 }
+
+// --- Notification / Reminder ---
+export type ReminderType = "bedtime" | "morningDiary" | "eveningDiary";
+
+export interface ReminderConfig {
+  type: ReminderType;
+  enabled: boolean;
+  time: string; // HH:mm
+  label: string;
+  message: string;
+}
+
+export interface NotificationSettings {
+  globalEnabled: boolean;
+  permissionStatus: NotificationPermission;
+  reminders: ReminderConfig[];
+}
