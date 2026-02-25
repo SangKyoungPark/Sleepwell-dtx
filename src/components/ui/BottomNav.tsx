@@ -8,9 +8,9 @@ const NAV_ITEMS = [
   { href: "/diary", icon: "📝", label: "일지" },
   { href: "/mission", icon: "🎯", label: "미션" },
   { href: "/home", icon: "🏠", label: "홈" },
+  { href: "/relax", icon: "🎵", label: "이완" },
   { href: "/coach", icon: "🤖", label: "코치" },
   { href: "/report", icon: "📊", label: "리포트" },
-  { href: "/settings", icon: "⚙️", label: "설정" },
 ];
 
 export function BottomNav() {
