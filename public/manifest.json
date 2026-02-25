@@ -2,6 +2,7 @@
   "name": "SleepWell DTx",
   "short_name": "SleepWell",
   "description": "CBT-I 기반 불면증 자가관리 프로그램",
+  "id": "/home",
   "start_url": "/home",
   "display": "standalone",
   "background_color": "#0a0e1a",
