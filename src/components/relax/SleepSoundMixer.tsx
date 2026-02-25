@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useSoundContext } from "@/contexts/SoundContext";
 import { VolumeSlider } from "@/components/ui/VolumeSlider";
+import { HeaderStars } from "@/components/ui/SleepIllustrations";
 import type { SoundType } from "@/lib/audio/SleepSoundEngine";
 
 interface Props {
@@ -73,14 +74,30 @@ export function SleepSoundMixer({ onBack }: Props) {
 	return (
 		<div className="flex flex-col">
 			{/* Back button */}
-			<button onClick={onBack} className="self-start text-[var(--color-muted)] mb-6 cursor-pointer">
+			<button onClick={onBack} className="self-start text-[var(--color-muted)] mb-4 cursor-pointer">
 				&larr; \uC774\uC644 \uB3C4\uAD6C
 			</button>
 
-			<h2 className="text-xl font-bold mb-2">\uC218\uBA74 \uC0AC\uC6B4\uB4DC</h2>
-			<p className="text-sm text-[var(--color-muted)] mb-6">
-				\uC5EC\uB7EC \uC18C\uB9AC\uB97C \uC870\uD569\uD558\uC5EC \uB098\uB9CC\uC758 \uC218\uBA74 \uD658\uACBD\uC744 \uB9CC\uB4E4\uC5B4\uBCF4\uC138\uC694
-			</p>
+			{/* Header card */}
+			<div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500/15 via-purple-500/10 to-blue-500/15 border border-indigo-500/20 p-5 mb-6">
+				{/* Background decoration */}
+				<div className="absolute top-2 right-3 opacity-60">
+					<HeaderStars />
+				</div>
+				<div className="absolute -bottom-3 -right-3 text-6xl opacity-10 select-none">
+					{"\uD83C\uDF19"}
+				</div>
+
+				<div className="relative">
+					<div className="flex items-center gap-2 mb-1.5">
+						<span className="text-2xl">{"\uD83C\uDFB5"}</span>
+						<h2 className="text-lg font-bold">\uC218\uBA74 \uC0AC\uC6B4\uB4DC</h2>
+					</div>
+					<p className="text-sm text-[var(--color-muted)] leading-relaxed">
+						\uC5EC\uB7EC \uC18C\uB9AC\uB97C \uC870\uD569\uD558\uC5EC<br />\uB098\uB9CC\uC758 \uC218\uBA74 \uD658\uACBD\uC744 \uB9CC\uB4E4\uC5B4\uBCF4\uC138\uC694
+					</p>
+				</div>
+			</div>
 
 			{/* Category tabs */}
 			<div className="flex gap-2 mb-5 overflow-x-auto">
