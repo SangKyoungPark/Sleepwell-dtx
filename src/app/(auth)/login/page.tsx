@@ -13,13 +13,18 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [saveEmail, setSaveEmail] = useState(false);
+  const [autoLogin, setAutoLogin] = useState(true);
 
-  // 저장된 이메일 불러오기
+  // 저장된 이메일 + 자동로그인 설정 불러오기
   useEffect(() => {
     const saved = localStorage.getItem("savedEmail");
     if (saved) {
       setEmail(saved);
       setSaveEmail(true);
+    }
+    const savedAutoLogin = localStorage.getItem("autoLogin");
+    if (savedAutoLogin !== null) {
+      setAutoLogin(savedAutoLogin !== "false");
     }
   }, []);
 
@@ -54,6 +59,14 @@ export default function LoginPage() {
       localStorage.setItem("savedEmail", email);
     } else {
       localStorage.removeItem("savedEmail");
+    }
+
+    // 자동로그인 설정 저장
+    localStorage.setItem("autoLogin", String(autoLogin));
+    if (autoLogin) {
+      sessionStorage.setItem("sw_session_active", "1");
+    } else {
+      sessionStorage.setItem("sw_session_active", "1");
     }
 
     router.push("/home");
@@ -107,8 +120,8 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* 아이디 저장 */}
-          <div className="flex items-center text-sm">
+          {/* 아이디 저장 + 자동 로그인 */}
+          <div className="flex items-center justify-between text-sm">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -117,6 +130,15 @@ export default function LoginPage() {
                 className="w-4 h-4 rounded accent-[var(--color-primary)]"
               />
               <span className="text-[var(--color-muted)]">아이디 저장</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoLogin}
+                onChange={(e) => setAutoLogin(e.target.checked)}
+                className="w-4 h-4 rounded accent-[var(--color-primary)]"
+              />
+              <span className="text-[var(--color-muted)]">자동 로그인</span>
             </label>
           </div>
 
@@ -147,6 +169,9 @@ export default function LoginPage() {
           type="button"
           onClick={async () => {
             setError("");
+            // Google 로그인 전에 자동로그인 설정 저장
+            localStorage.setItem("autoLogin", String(autoLogin));
+            sessionStorage.setItem("sw_session_active", "1");
             const supabase = createClient();
             if (!supabase) {
               setError("Supabase가 설정되지 않았습니다.");

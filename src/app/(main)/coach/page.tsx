@@ -10,6 +10,7 @@ import {
 } from "@/lib/supabase/db";
 import { dbToDiary } from "@/lib/supabase/db";
 import MarkdownText from "@/components/ui/MarkdownText";
+import CoachResponseRenderer from "@/components/coach/CoachResponseRenderer";
 import type { ChatMessage } from "@/types";
 import { CoachCharacter, StarsBackground } from "@/components/ui/SleepIllustrations";
 
@@ -451,9 +452,9 @@ export default function CoachPage() {
               )}
 
               <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed relative ${
+                className={`rounded-2xl px-4 py-3 text-sm leading-relaxed relative ${
                   message.status === "error" ? "opacity-60" : ""
-                }`}
+                } ${message.role === "user" ? "max-w-[80%]" : "max-w-[92%]"}`}
                 style={
                   message.role === "user"
                     ? {
@@ -470,9 +471,12 @@ export default function CoachPage() {
                       }
                 }
               >
-                {/* (3) 마크다운 렌더링: assistant만 */}
+                {/* (3) assistant: 스트리밍/완료 분기 렌더링 */}
                 {message.role === "assistant" ? (
-                  <MarkdownText text={message.text} />
+                  <CoachResponseRenderer
+                    text={message.text}
+                    isStreaming={message.status !== "done"}
+                  />
                 ) : (
                   <span className="whitespace-pre-wrap">{message.text}</span>
                 )}

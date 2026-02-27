@@ -546,6 +546,7 @@ export default function SettingsPage() {
                 if (supabase) {
                   await supabase.auth.signOut();
                 }
+                sessionStorage.removeItem("sw_session_active");
                 router.push("/login");
                 router.refresh();
               }}
