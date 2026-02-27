@@ -11,7 +11,7 @@ import {
 import { dbToDiary } from "@/lib/supabase/db";
 import MarkdownText from "@/components/ui/MarkdownText";
 import type { ChatMessage } from "@/types";
-import { CoachCharacter } from "@/components/ui/SleepIllustrations";
+import { CoachCharacter, StarsBackground } from "@/components/ui/SleepIllustrations";
 
 // ── 수면 데이터 컨텍스트 빌드 ──
 
@@ -49,10 +49,10 @@ function formatDiaryEntries(diary: Record<string, unknown>[]): string {
   return lines.join("\n");
 }
 
-/** Supabase → localStorage 폴백으로 수면 데이터 컨텍스트 생성 */
+/** Supabase -> localStorage 폴백으로 수면 데이터 컨텍스트 생성 */
 async function buildSleepContext(userId: string | null): Promise<string> {
   try {
-    // 로그인 사용자 → Supabase
+    // 로그인 사용자 -> Supabase
     if (userId) {
       const { data, error } = await getDiaryEntries(userId);
       if (!error && data && data.length > 0) {
@@ -61,7 +61,7 @@ async function buildSleepContext(userId: string | null): Promise<string> {
       }
     }
 
-    // 비로그인 또는 Supabase 실패 → localStorage 폴백
+    // 비로그인 또는 Supabase 실패 -> localStorage 폴백
     const diaryRaw = localStorage.getItem("sleepDiary");
     if (!diaryRaw) return "수면 기록이 없습니다.";
     const diary = JSON.parse(diaryRaw);
@@ -74,38 +74,43 @@ async function buildSleepContext(userId: string | null): Promise<string> {
 
 // ── 상수 ──
 
-const QUICK_QUESTIONS = [
-  "잠이 안 와요, 어떻게 하면 좋을까요?",
-  "수면 효율을 높이려면?",
-  "내 수면 데이터를 분석해주세요",
-  "자기 전 루틴 추천해주세요",
+/** 빠른 질문 (카테고리 아이콘 + 색상 포함) */
+const QUICK_QUESTIONS: { text: string; icon: string; color: string }[] = [
+  { text: "잠이 안 와요, 어떻게 하면 좋을까요?", icon: "🌙", color: "rgba(99,102,241,0.2)" },
+  { text: "수면 효율을 높이려면?", icon: "📈", color: "rgba(52,211,153,0.2)" },
+  { text: "내 수면 데이터를 분석해주세요", icon: "📊", color: "rgba(167,139,250,0.2)" },
+  { text: "자기 전 루틴 추천해주세요", icon: "🧘", color: "rgba(251,191,36,0.2)" },
 ];
 
 const WELCOME_TEXT =
   "안녕하세요! 저는 SleepWell AI 수면 코치입니다.\n\n수면에 관한 고민이 있으시면 편하게 말씀해주세요. 수면 일지 데이터를 바탕으로 개인화된 조언을 드릴 수 있어요.\n\n아래 질문을 선택하거나, 직접 입력해보세요!";
 
-// (6) 추천 질문 — 카테고리별
-const FOLLOW_UP_QUESTIONS: { keywords: string[]; text: string }[] = [
-  { keywords: ["수면효율", "효율", "%"], text: "수면효율을 더 높이려면 어떻게 해야 하나요?" },
-  { keywords: ["스트레스", "불안", "걱정"], text: "잠자리에서 걱정을 멈추는 방법이 있나요?" },
-  { keywords: ["카페인", "커피", "차"], text: "카페인이 수면에 미치는 영향이 궁금해요" },
-  { keywords: ["루틴", "습관", "위생"], text: "수면 위생 체크리스트를 알려주세요" },
-  { keywords: ["운동", "활동"], text: "수면에 도움 되는 운동 시간대가 있나요?" },
-  { keywords: ["잠복기", "잠이 안", "입면"], text: "누워서 30분 넘게 잠이 안 오면 어떻게 하나요?" },
-  { keywords: ["깬", "각성", "중간"], text: "밤에 자주 깨는 원인과 해결법을 알려주세요" },
-  { keywords: ["침대", "자극", "제한"], text: "자극 조절법이 뭔지 자세히 설명해주세요" },
-  { keywords: ["이완", "명상", "호흡"], text: "잠들기 전 이완 기법을 알려주세요" },
+// (6) 추천 질문 -- 카테고리별
+const FOLLOW_UP_QUESTIONS: { keywords: string[]; text: string; icon: string }[] = [
+  { keywords: ["수면효율", "효율", "%"], text: "수면효율을 더 높이려면 어떻게 해야 하나요?", icon: "📈" },
+  { keywords: ["스트레스", "불안", "걱정"], text: "잠자리에서 걱정을 멈추는 방법이 있나요?", icon: "💭" },
+  { keywords: ["카페인", "커피", "차"], text: "카페인이 수면에 미치는 영향이 궁금해요", icon: "☕" },
+  { keywords: ["루틴", "습관", "위생"], text: "수면 위생 체크리스트를 알려주세요", icon: "🛏️" },
+  { keywords: ["운동", "활동"], text: "수면에 도움 되는 운동 시간대가 있나요?", icon: "🏃" },
+  { keywords: ["잠복기", "잠이 안", "입면"], text: "누워서 30분 넘게 잠이 안 오면 어떻게 하나요?", icon: "⏰" },
+  { keywords: ["깬", "각성", "중간"], text: "밤에 자주 깨는 원인과 해결법을 알려주세요", icon: "🌗" },
+  { keywords: ["침대", "자극", "제한"], text: "자극 조절법이 뭔지 자세히 설명해주세요", icon: "🔄" },
+  { keywords: ["이완", "명상", "호흡"], text: "잠들기 전 이완 기법을 알려주세요", icon: "🧘" },
 ];
 
-function getFollowUpQuestions(lastAssistantText: string): string[] {
+function getFollowUpQuestions(lastAssistantText: string): { text: string; icon: string }[] {
   const lower = lastAssistantText.toLowerCase();
   const matched = FOLLOW_UP_QUESTIONS.filter((q) =>
     q.keywords.some((kw) => lower.includes(kw)),
-  ).map((q) => q.text);
+  ).map((q) => ({ text: q.text, icon: q.icon }));
 
   // 매칭 없으면 일반 추천
   if (matched.length === 0) {
-    return ["수면 효율을 높이려면?", "오늘 밤 꿀잠 자는 팁 알려주세요", "내 수면 데이터를 분석해주세요"];
+    return [
+      { text: "수면 효율을 높이려면?", icon: "📈" },
+      { text: "오늘 밤 꿀잠 자는 팁 알려주세요", icon: "🌙" },
+      { text: "내 수면 데이터를 분석해주세요", icon: "📊" },
+    ];
   }
   return matched.slice(0, 3);
 }
@@ -288,7 +293,7 @@ export default function CoachPage() {
         );
       }
 
-      // 완료 — status를 done으로
+      // 완료 -- status를 done으로
       setMessages((prev) => {
         const final = prev.map((m) =>
           m.id === assistantId ? { ...m, status: "done" as const } : m,
@@ -340,40 +345,78 @@ export default function CoachPage() {
 
   return (
     <main className="min-h-screen flex flex-col max-w-md mx-auto pb-20">
-      {/* 헤더 */}
-      <div className="sticky top-0 z-10 bg-[var(--color-background)] border-b border-[var(--color-surface-light)] px-6 py-4">
+      {/* ━━━ 프리미엄 헤더 ━━━ */}
+      <div
+        className="sticky top-0 z-10 px-6 py-4"
+        style={{
+          background: "linear-gradient(180deg, rgba(10,14,26,0.98) 0%, rgba(10,14,26,0.92) 100%)",
+          backdropFilter: "blur(16px)",
+          borderBottom: "1px solid rgba(99,102,241,0.12)",
+        }}
+      >
         <div className="flex items-center gap-3">
-          <CoachCharacter size={40} />
-          <div>
-            <h1 className="text-lg font-bold">AI 수면 코치</h1>
-            <p className="text-xs text-[var(--color-muted)]">
-              CBT-I 기반 개인 맞춤 상담
-            </p>
+          {/* 코치 아바타 + 온라인 표시 */}
+          <div className="relative flex-shrink-0">
+            <div
+              className="rounded-full p-0.5"
+              style={{
+                background: "linear-gradient(135deg, rgba(99,102,241,0.4), rgba(167,139,250,0.4))",
+              }}
+            >
+              <div className="rounded-full bg-[var(--color-surface)] p-1">
+                <CoachCharacter size={36} />
+              </div>
+            </div>
+            {/* 온라인 표시등 */}
+            <div
+              className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[var(--color-background)] animate-pulse-ring"
+              style={{ background: "var(--color-success)" }}
+              aria-label="온라인 상태"
+            />
           </div>
-          <div className="ml-auto flex items-center gap-2">
+
+          <div className="flex-1 min-w-0">
+            <h1 className="text-base font-bold tracking-tight">AI 수면 코치</h1>
+            <div className="flex items-center gap-1.5">
+              <span
+                className="w-1.5 h-1.5 rounded-full inline-block"
+                style={{ background: "var(--color-success)" }}
+              />
+              <p className="text-[11px] text-[var(--color-muted)]">
+                CBT-I 기반 개인 맞춤 상담
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
             {/* (5) 새 대화 버튼 */}
             {messages.length > 0 && !isLoading && (
               <button
                 onClick={handleNewChat}
-                className="px-3 py-1.5 text-xs bg-[var(--color-surface)] rounded-lg border border-[var(--color-surface-light)] hover:bg-[var(--color-surface-light)] transition-colors cursor-pointer"
+                className="px-3 py-1.5 text-xs font-medium rounded-lg cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.97]"
+                style={{
+                  background: "rgba(99,102,241,0.12)",
+                  border: "1px solid rgba(99,102,241,0.25)",
+                  color: "var(--color-primary-light)",
+                }}
               >
                 + 새 대화
               </button>
             )}
             {/* 헤더 로딩 dots */}
             {isLoading && (
-              <div className="flex gap-1">
+              <div className="flex gap-1.5 items-center px-2 py-1 rounded-full" style={{ background: "rgba(99,102,241,0.1)" }}>
                 <span
-                  className="w-1.5 h-1.5 bg-[var(--color-primary-light)] rounded-full animate-bounce"
+                  className="w-1.5 h-1.5 bg-[var(--color-primary-light)] rounded-full animate-typing-bounce"
                   style={{ animationDelay: "0ms" }}
                 />
                 <span
-                  className="w-1.5 h-1.5 bg-[var(--color-primary-light)] rounded-full animate-bounce"
-                  style={{ animationDelay: "150ms" }}
+                  className="w-1.5 h-1.5 bg-[var(--color-primary-light)] rounded-full animate-typing-bounce"
+                  style={{ animationDelay: "200ms" }}
                 />
                 <span
-                  className="w-1.5 h-1.5 bg-[var(--color-primary-light)] rounded-full animate-bounce"
-                  style={{ animationDelay: "300ms" }}
+                  className="w-1.5 h-1.5 bg-[var(--color-primary-light)] rounded-full animate-typing-bounce"
+                  style={{ animationDelay: "400ms" }}
                 />
               </div>
             )}
@@ -381,76 +424,174 @@ export default function CoachPage() {
         </div>
       </div>
 
-      {/* 메시지 영역 */}
+      {/* ━━━ 메시지 영역 ━━━ */}
       <div className="flex-1 px-4 py-4 space-y-4 overflow-y-auto">
-        {allMessages.map((message) => (
-          <div key={message.id}>
+        {allMessages.map((message, idx) => (
+          <div
+            key={message.id}
+            className="animate-message-slide-in"
+            style={{ animationDelay: `${Math.min(idx * 50, 300)}ms` }}
+          >
             <div
               className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
             >
+              {/* AI 아바타 (assistant 메시지에만) */}
+              {message.role === "assistant" && (
+                <div className="flex-shrink-0 mr-2 mt-1">
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.2))",
+                      border: "1px solid rgba(99,102,241,0.15)",
+                    }}
+                  >
+                    <CoachCharacter size={18} />
+                  </div>
+                </div>
+              )}
+
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed relative ${
+                  message.status === "error" ? "opacity-60" : ""
+                }`}
+                style={
                   message.role === "user"
-                    ? "bg-[var(--color-primary)] text-white rounded-br-md whitespace-pre-wrap"
-                    : "bg-[var(--color-surface)] text-[var(--color-foreground)] rounded-bl-md"
-                } ${message.status === "error" ? "opacity-60" : ""}`}
+                    ? {
+                        background: "linear-gradient(135deg, #6366f1, #818cf8)",
+                        color: "white",
+                        borderBottomRightRadius: "6px",
+                        boxShadow: "0 4px 16px rgba(99,102,241,0.25)",
+                      }
+                    : {
+                        background: "linear-gradient(135deg, rgba(20,25,39,0.95), rgba(30,36,56,0.9))",
+                        border: "1px solid rgba(99,102,241,0.15)",
+                        borderBottomLeftRadius: "6px",
+                        boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
+                      }
+                }
               >
                 {/* (3) 마크다운 렌더링: assistant만 */}
                 {message.role === "assistant" ? (
                   <MarkdownText text={message.text} />
                 ) : (
-                  message.text
+                  <span className="whitespace-pre-wrap">{message.text}</span>
                 )}
               </div>
             </div>
 
             {/* (4) 에러 시 재전송 버튼 */}
             {message.status === "error" && (
-              <div className="flex justify-end mt-1">
+              <div className="flex justify-end mt-1.5">
                 <button
                   onClick={() => handleRetry(message)}
-                  className="text-xs text-red-400 hover:text-red-300 transition-colors cursor-pointer flex items-center gap-1"
+                  className="text-xs text-red-400 hover:text-red-300 transition-colors cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+                  style={{
+                    background: "rgba(248,113,113,0.08)",
+                    border: "1px solid rgba(248,113,113,0.2)",
+                  }}
                 >
-                  <span>⚠️</span> 전송 실패 — 다시 보내기
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M6 1v4l3 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" />
+                  </svg>
+                  전송 실패 - 다시 보내기
                 </button>
               </div>
             )}
           </div>
         ))}
 
-        {/* 빠른 질문 (대화 시작 전) */}
+        {/* ━━━ 웰컴 빠른 질문 (대화 시작 전) ━━━ */}
         {messages.length === 0 && (
-          <div className="space-y-2 pt-2">
-            {QUICK_QUESTIONS.map((q) => (
-              <button
-                key={q}
-                onClick={() => handleSend(q)}
-                className="block w-full text-left px-4 py-3 bg-[var(--color-surface)] rounded-xl text-sm text-[var(--color-foreground)] hover:bg-[var(--color-surface-light)] transition-colors cursor-pointer border border-[var(--color-surface-light)]"
-              >
-                {q}
-              </button>
-            ))}
+          <div className="relative pt-2">
+            {/* 별 배경 장식 */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+              <StarsBackground />
+            </div>
+
+            {/* 큰 코치 일러스트 + 인사 */}
+            <div className="relative flex flex-col items-center mb-6 animate-slide-up">
+              <div className="relative">
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)",
+                    transform: "scale(1.8)",
+                  }}
+                />
+                <CoachCharacter size={100} className="relative animate-float" />
+              </div>
+              <p className="text-sm text-[var(--color-muted)] mt-3 text-center">
+                무엇이든 편하게 물어보세요
+              </p>
+            </div>
+
+            {/* 빠른 질문 카드 그리드 */}
+            <div className="relative grid grid-cols-2 gap-2.5">
+              {QUICK_QUESTIONS.map((q, i) => (
+                <button
+                  key={q.text}
+                  onClick={() => handleSend(q.text)}
+                  className="text-left p-3.5 rounded-2xl text-sm transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.97] animate-card-stagger"
+                  style={{
+                    background: `linear-gradient(135deg, ${q.color}, rgba(20,25,39,0.95))`,
+                    border: "1px solid rgba(99,102,241,0.15)",
+                    backdropFilter: "blur(8px)",
+                    animationDelay: `${i * 80}ms`,
+                  }}
+                >
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-base mb-2"
+                    style={{ background: q.color }}
+                  >
+                    {q.icon}
+                  </div>
+                  <p className="text-xs leading-snug text-[var(--color-foreground)]">
+                    {q.text}
+                  </p>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* (8) 타이핑 인디케이터 — 스트리밍 시작 전 */}
+        {/* ━━━ 타이핑 인디케이터 -- 스트리밍 시작 전 ━━━ */}
         {isLoading && !isStreaming && (
-          <div className="flex justify-start">
-            <div className="bg-[var(--color-surface)] rounded-2xl rounded-bl-md px-4 py-3 text-sm text-[var(--color-muted)]">
-              <div className="flex items-center gap-2">
-                <span>코치가 답변을 작성 중이에요</span>
-                <span className="flex gap-0.5">
+          <div className="flex justify-start animate-message-slide-in">
+            {/* AI 아바타 */}
+            <div className="flex-shrink-0 mr-2 mt-1">
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center"
+                style={{
+                  background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.2))",
+                  border: "1px solid rgba(99,102,241,0.15)",
+                }}
+              >
+                <CoachCharacter size={18} />
+              </div>
+            </div>
+            <div
+              className="rounded-2xl px-4 py-3 text-sm"
+              style={{
+                background: "linear-gradient(135deg, rgba(20,25,39,0.95), rgba(30,36,56,0.9))",
+                border: "1px solid rgba(99,102,241,0.15)",
+                borderBottomLeftRadius: "6px",
+              }}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-[var(--color-muted)] text-xs">코치가 답변 중</span>
+                <span className="flex gap-1">
                   <span
-                    className="w-1 h-1 bg-[var(--color-muted)] rounded-full animate-bounce"
-                    style={{ animationDelay: "0ms" }}
+                    className="w-2 h-2 rounded-full animate-typing-bounce"
+                    style={{ background: "var(--color-primary-light)", animationDelay: "0ms" }}
                   />
                   <span
-                    className="w-1 h-1 bg-[var(--color-muted)] rounded-full animate-bounce"
-                    style={{ animationDelay: "150ms" }}
+                    className="w-2 h-2 rounded-full animate-typing-bounce"
+                    style={{ background: "var(--color-accent)", animationDelay: "200ms" }}
                   />
                   <span
-                    className="w-1 h-1 bg-[var(--color-muted)] rounded-full animate-bounce"
-                    style={{ animationDelay: "300ms" }}
+                    className="w-2 h-2 rounded-full animate-typing-bounce"
+                    style={{ background: "var(--color-primary-light)", animationDelay: "400ms" }}
                   />
                 </span>
               </div>
@@ -458,27 +599,45 @@ export default function CoachPage() {
           </div>
         )}
 
-        {/* (6) 대화 중 추천 질문 */}
+        {/* ━━━ 대화 중 추천 질문 칩 ━━━ */}
         {showFollowUp && followUpQuestions.length > 0 && (
-          <div className="space-y-2 pt-1">
-            <p className="text-xs text-[var(--color-muted)] px-1">추천 질문</p>
-            {followUpQuestions.map((q) => (
-              <button
-                key={q}
-                onClick={() => handleSend(q)}
-                className="block w-full text-left px-3 py-2.5 bg-[var(--color-surface)] rounded-xl text-sm text-[var(--color-foreground)] hover:bg-[var(--color-surface-light)] transition-colors cursor-pointer border border-[var(--color-surface-light)]"
-              >
-                {q}
-              </button>
-            ))}
+          <div className="space-y-2 pt-1 animate-slide-up">
+            <p className="text-[10px] text-[var(--color-muted)] uppercase tracking-wider px-1 font-semibold">
+              추천 질문
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {followUpQuestions.map((q, i) => (
+                <button
+                  key={q.text}
+                  onClick={() => handleSend(q.text)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.97] animate-chip-glow"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(99,102,241,0.1), rgba(167,139,250,0.1))",
+                    border: "1px solid rgba(99,102,241,0.2)",
+                    color: "var(--color-primary-light)",
+                    animationDelay: `${i * 200}ms`,
+                  }}
+                >
+                  <span>{q.icon}</span>
+                  <span>{q.text}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 입력 영역 */}
-      <div className="sticky bottom-16 bg-[var(--color-background)] border-t border-[var(--color-surface-light)] px-4 py-3">
+      {/* ━━━ 입력 영역 ━━━ */}
+      <div
+        className="sticky bottom-16 px-4 py-3"
+        style={{
+          background: "linear-gradient(0deg, rgba(10,14,26,0.98) 0%, rgba(10,14,26,0.92) 100%)",
+          backdropFilter: "blur(16px)",
+          borderTop: "1px solid rgba(99,102,241,0.1)",
+        }}
+      >
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -492,14 +651,34 @@ export default function CoachPage() {
             onChange={(e) => setInputText(e.target.value)}
             placeholder="수면 고민을 말씀해주세요..."
             disabled={isLoading}
-            className="flex-1 bg-[var(--color-surface)] rounded-xl px-4 py-3 text-sm outline-none border border-[var(--color-surface-light)] focus:border-[var(--color-primary)] transition-colors disabled:opacity-50"
+            className="flex-1 rounded-xl px-4 py-3 text-sm outline-none transition-all disabled:opacity-50"
+            style={{
+              background: "rgba(20,25,39,0.8)",
+              border: inputText.trim()
+                ? "1px solid rgba(99,102,241,0.4)"
+                : "1px solid rgba(30,36,56,0.8)",
+              boxShadow: inputText.trim()
+                ? "0 0 12px rgba(99,102,241,0.1)"
+                : "none",
+            }}
           />
           <button
             type="submit"
             disabled={isLoading || !inputText.trim()}
-            className="px-4 py-3 bg-[var(--color-primary)] text-white rounded-xl font-medium text-sm disabled:opacity-40 cursor-pointer hover:bg-[var(--color-primary-light)] transition-colors"
+            className="px-4 py-3 rounded-xl font-medium text-sm disabled:opacity-30 cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.96]"
+            style={{
+              background: inputText.trim()
+                ? "linear-gradient(135deg, #6366f1, #818cf8)"
+                : "rgba(99,102,241,0.3)",
+              color: "white",
+              boxShadow: inputText.trim()
+                ? "0 4px 16px rgba(99,102,241,0.3)"
+                : "none",
+            }}
           >
-            전송
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M2 9L16 2L9 16L7.5 10.5L2 9Z" fill="currentColor" />
+            </svg>
           </button>
         </form>
       </div>
