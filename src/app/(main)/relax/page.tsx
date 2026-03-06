@@ -7,6 +7,7 @@ import { PMRExercise } from "@/components/relax/PMRExercise";
 import { BodyScanExercise } from "@/components/relax/BodyScanExercise";
 import { SleepSoundMixer } from "@/components/relax/SleepSoundMixer";
 import { CloudDecoration, HeaderStars } from "@/components/ui/SleepIllustrations";
+import { incrementRelaxCount } from "@/hooks/useAchievements";
 
 type Tool = "menu" | "breathing" | "pmr" | "bodyscan" | "sound";
 
@@ -206,6 +207,13 @@ function RelaxHeaderIllustration() {
 export default function RelaxPage() {
   const [activeTool, setActiveTool] = useState<Tool>("menu");
 
+  function selectTool(tool: Tool) {
+    setActiveTool(tool);
+    if (tool !== "menu") {
+      incrementRelaxCount();
+    }
+  }
+
   if (activeTool === "sound") {
     return (
       <main className="min-h-screen flex flex-col p-6 max-w-md mx-auto pb-24">
@@ -266,7 +274,7 @@ export default function RelaxPage() {
         {TOOLS.map((tool, index) => (
           <button
             key={tool.id}
-            onClick={() => setActiveTool(tool.id)}
+            onClick={() => selectTool(tool.id)}
             className={cn(
               "w-full text-left rounded-2xl p-5 relative overflow-hidden group",
               "transition-all duration-200 cursor-pointer active:scale-[0.98]",

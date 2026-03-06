@@ -13,6 +13,7 @@ import MarkdownText from "@/components/ui/MarkdownText";
 import CoachResponseRenderer from "@/components/coach/CoachResponseRenderer";
 import type { ChatMessage } from "@/types";
 import { CoachCharacter, StarsBackground } from "@/components/ui/SleepIllustrations";
+import { incrementCoachCount } from "@/hooks/useAchievements";
 
 // ── 수면 데이터 컨텍스트 빌드 ──
 
@@ -307,6 +308,7 @@ export default function CoachPage() {
           saveChatMessage(userId, sessionId, "assistant", fullText);
         }
         syncLocalStorage(final, sessionId);
+        incrementCoachCount();
 
         return final;
       });

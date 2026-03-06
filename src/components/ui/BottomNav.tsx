@@ -54,6 +54,12 @@ function NavIcon({ name, active }: { name: string; active: boolean }) {
         <line x1="6" y1="20" x2="6" y2="14" />
       </svg>
     ),
+    achievements: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="8" r="6" />
+        <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" />
+      </svg>
+    ),
   };
 
   return <>{icons[name] || null}</>;
@@ -65,7 +71,7 @@ const NAV_ITEMS = [
   { href: "/home", iconName: "home", label: "홈" },
   { href: "/relax", iconName: "relax", label: "이완" },
   { href: "/coach", iconName: "coach", label: "코치" },
-  { href: "/report", iconName: "report", label: "리포트" },
+  { href: "/achievements", iconName: "achievements", label: "업적" },
 ];
 
 export function BottomNav() {

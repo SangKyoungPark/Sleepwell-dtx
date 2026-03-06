@@ -86,6 +86,14 @@ function getQuickActions(weekInfo: (typeof PROGRAM_WEEKS)[number]): QuickAction[
       glow: "rgba(245,158,11,0.3)",
     },
     {
+      href: "/achievements",
+      icon: "🏆",
+      label: "업적",
+      sub: "배지 모아보기",
+      gradient: "from-yellow-500/20 to-amber-500/20",
+      glow: "rgba(251,191,36,0.3)",
+    },
+    {
       href: "/report",
       icon: "📊",
       label: "나의 리포트",
@@ -488,7 +496,7 @@ export default function HomePage() {
                 key={action.href}
                 href={action.href}
                 className={`rounded-2xl p-4 relative overflow-hidden group transition-all active:scale-[0.97] ${
-                  index === 4 ? "col-span-2" : ""
+                  index === quickActions.length - 1 && quickActions.length % 2 !== 0 ? "col-span-2" : ""
                 }`}
                 style={{
                   background: `linear-gradient(135deg, var(--color-surface), var(--color-surface-light))`,
@@ -505,11 +513,11 @@ export default function HomePage() {
                   }}
                 />
 
-                <div className={`relative flex ${index === 4 ? "flex-row items-center gap-4" : "flex-col"}`}>
+                <div className={`relative flex ${index === quickActions.length - 1 && quickActions.length % 2 !== 0 ? "flex-row items-center gap-4" : "flex-col"}`}>
                   {/* 아이콘 원형 배경 */}
                   <div
                     className={`rounded-xl flex items-center justify-center text-xl flex-shrink-0 transition-transform group-hover:scale-110 ${
-                      index === 4 ? "w-10 h-10" : "w-10 h-10 mb-2"
+                      index === quickActions.length - 1 && quickActions.length % 2 !== 0 ? "w-10 h-10" : "w-10 h-10 mb-2"
                     }`}
                     style={{
                       background: `linear-gradient(135deg, ${action.glow.replace("0.3", "0.25")}, ${action.glow.replace("0.3", "0.1")})`,
@@ -524,7 +532,7 @@ export default function HomePage() {
                     <p className="text-xs text-[var(--color-muted)] mt-0.5">{action.sub}</p>
                   </div>
 
-                  {index === 4 && (
+                  {index === quickActions.length - 1 && quickActions.length % 2 !== 0 && (
                     <span className="ml-auto text-[var(--color-muted)] text-sm">›</span>
                   )}
                 </div>
